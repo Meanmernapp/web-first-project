@@ -7,8 +7,9 @@ import 'react-toastify/dist/ReactToastify.css';
 
 interface Project {
   name: string;
+  description: string;  // Added description here
   status?: string;
-  pm?: string;
+  pm?: string; // Project manager username
   periodOfPerformance?: {
     startDate: string;
     endDate: string;
@@ -22,7 +23,7 @@ interface User {
 
 interface AlertConfig {
   projectName: string;
-  managerEmail: string;
+  managerEmail?: string; // Make this optional
   customEmails: string[];
   lastAlertSent?: string;
 }
@@ -35,7 +36,7 @@ const ProjectEndAlerts: React.FC = () => {
   const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [showActive, setShowActive] = useState<boolean>(true);
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' }); // Default sort config
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +57,17 @@ const ProjectEndAlerts: React.FC = () => {
           }),
         ]);
 
-        setProjects(projectsRes.data);
+        const sortedProjects = projectsRes.data.sort((a: Project, b: Project) => a.name.localeCompare(b.name));
+        setProjects(sortedProjects);
         setUsers(usersRes.data);
-        setAlertConfigs(alertConfigsRes.data);
-        setSelectedProjects(new Set(alertConfigsRes.data.map((config: AlertConfig) => config.projectName)));
+
+        const alertConfigsWithManagerEmails = alertConfigsRes.data.map((config: AlertConfig) => ({
+          ...config,
+          managerEmail: config.managerEmail ?? getManagerEmail(config.projectName, sortedProjects, usersRes.data),
+        }));
+
+        setAlertConfigs(alertConfigsWithManagerEmails);
+        setSelectedProjects(new Set(alertConfigsWithManagerEmails.map((config: AlertConfig) => config.projectName)));
       } catch (error) {
         console.error('Error fetching data:', error);
         setError('Failed to fetch data.');
@@ -71,7 +79,7 @@ const ProjectEndAlerts: React.FC = () => {
     fetchData();
   }, []);
 
-  const getManagerEmail = (projectName: string) => {
+  const getManagerEmail = (projectName: string, projects: Project[], users: User[]): string => {
     const project = projects.find(proj => proj.name === projectName);
     if (project) {
       const user = users.find(user => user.username === project.pm);
@@ -88,14 +96,18 @@ const ProjectEndAlerts: React.FC = () => {
   };
 
   const updateAlertConfig = async (alertConfig: AlertConfig) => {
-    const url = `/api/project-end-alerts/${alertConfig.projectName}`;
+    const url = `/api/project-end-alerts/${encodeURIComponent(alertConfig.projectName)}`;
     const headers = {
       'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
       'Content-Type': 'application/json',
     };
 
     try {
+      console.log('Updating alert config:', alertConfig); // Log the data being sent
       await axios.post(url, alertConfig, { headers });
+      setAlertConfigs(prevConfigs =>
+        prevConfigs.map(config => (config.projectName === alertConfig.projectName ? alertConfig : config))
+      );
       toast.success(`Alerts updated for project ${alertConfig.projectName}`);
     } catch (error) {
       console.error('Error updating alerts:', error);
@@ -108,7 +120,7 @@ const ProjectEndAlerts: React.FC = () => {
   };
 
   const removeAlertConfig = async (projectName: string) => {
-    const url = `/api/project-end-alerts/${projectName}`;
+    const url = `/api/project-end-alerts/${encodeURIComponent(projectName)}`;
     const headers = {
       'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
       'Content-Type': 'application/json',
@@ -136,57 +148,18 @@ const ProjectEndAlerts: React.FC = () => {
       newSelectedProjects.delete(projectName);
       await removeAlertConfig(projectName);
     } else {
-      const projectManagerEmail = getManagerEmail(projectName);
+      const projectManagerEmail = getManagerEmail(projectName, projects, users);
 
       const alertConfig = {
         projectName,
         managerEmail: projectManagerEmail,
-        customEmails: ['joema@example.com', 'sanjay@example.com'],
+        customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
       };
       newSelectedProjects.add(projectName);
-      setAlertConfigs([...alertConfigs, alertConfig]);
       await updateAlertConfig(alertConfig);
     }
 
     setSelectedProjects(newSelectedProjects);
-  };
-
-  const toggleSelectAllProjects = async () => {
-    const filteredProjects = projects.filter(project =>
-      showActive ? project.status?.toLowerCase() === 'active' : project.status?.toLowerCase() !== 'active'
-    );
-
-    if (selectedProjects.size === filteredProjects.length) {
-      setSelectedProjects(new Set());
-      await Promise.all(
-        filteredProjects.map(project => removeAlertConfig(project.name))
-      );
-    } else {
-      const newSelectedProjects = new Set(filteredProjects.map(project => project.name));
-      setSelectedProjects(newSelectedProjects);
-
-      await Promise.all(
-        filteredProjects.map(async project => {
-          const projectManagerEmail = getManagerEmail(project.name);
-
-          const alertConfig = {
-            projectName: project.name,
-            managerEmail: projectManagerEmail,
-            customEmails: ['joema@example.com', 'sanjay@example.com'],
-          };
-
-          await updateAlertConfig(alertConfig);
-        })
-      );
-    }
-  };
-
-  const handleInputChange = (projectName: string, field: keyof AlertConfig, value: string | number | string[]) => {
-    setAlertConfigs(prevConfigs =>
-      prevConfigs.map(config =>
-        config.projectName === projectName ? { ...config, [field]: value } : config
-      )
-    );
   };
 
   const handleEmailCheckboxChange = async (projectName: string, email: string, isChecked: boolean) => {
@@ -200,10 +173,38 @@ const ProjectEndAlerts: React.FC = () => {
           }
         : config
     );
-    setAlertConfigs(updatedConfigs);
+
     const updatedConfig = updatedConfigs.find(config => config.projectName === projectName);
     if (updatedConfig) {
-      await updateAlertConfig(updatedConfig);
+      try {
+        console.log('Updating alert config for email change:', updatedConfig); // Log the updated config
+        await updateAlertConfig(updatedConfig);
+      } catch (error) {
+        console.error('Error updating custom emails:', error);
+        toast.error('Error updating custom emails.');
+      }
+    }
+  };
+
+  const handleManagerEmailCheckboxChange = async (projectName: string, isChecked: boolean) => {
+    const updatedConfigs = alertConfigs.map(config =>
+      config.projectName === projectName
+        ? {
+            ...config,
+            managerEmail: isChecked ? getManagerEmail(projectName, projects, users) : '',
+          }
+        : config
+    );
+
+    const updatedConfig = updatedConfigs.find(config => config.projectName === projectName);
+    if (updatedConfig) {
+      try {
+        console.log('Updating alert config for manager email change:', updatedConfig); // Log the updated config
+        await updateAlertConfig(updatedConfig);
+      } catch (error) {
+        console.error('Error updating manager email:', error);
+        toast.error('Error updating manager email.');
+      }
     }
   };
 
@@ -258,13 +259,10 @@ const ProjectEndAlerts: React.FC = () => {
       <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
         <Header pageTitle="Project End Alerts" />
         <ToastContainer />
+        <div className="p-4 bg-indigo-500 text-white rounded-md shadow-md mb-4 flex justify-center items-center text-center">
+          This page allows you to add projects and notify Project manager Sanjay and Joema 30 days before the project ends.
+        </div>
         <div className="mb-4 flex flex-col md:flex-row justify-between">
-          <button
-            onClick={toggleSelectAllProjects}
-            className="mb-2 md:mb-0 py-2 px-4 bg-gray-500 dark:bg-indigo-600 hover:bg-gray-600 dark:hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {selectedProjects.size === filteredProjects.length ? 'Deselect All' : 'Select All'}
-          </button>
           <button
             onClick={() => setShowActive(!showActive)}
             className="py-2 px-4 bg-gray-500 dark:bg-indigo-600 hover:bg-gray-600 dark:hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -290,6 +288,13 @@ const ProjectEndAlerts: React.FC = () => {
                     onClick={() => handleSort('name')}
                   >
                     Project Name
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('description')}  // Added description sort
+                  >
+                    Description
                   </th>
                   <th
                     scope="col"
@@ -325,9 +330,10 @@ const ProjectEndAlerts: React.FC = () => {
                 {sortedProjects.map(project => {
                   const alertConfig = alertConfigs.find(config => config.projectName === project.name) || {
                     projectName: project.name,
-                    managerEmail: getManagerEmail(project.name),
-                    customEmails: ['joema@example.com', 'sanjay@example.com'],
+                    managerEmail: getManagerEmail(project.name, projects, users),
+                    customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
                   };
+
                   const isSelected = selectedProjects.has(project.name);
                   const daysRemaining = project.periodOfPerformance ? calculateDaysRemaining(project.periodOfPerformance.endDate) : 'N/A';
                   const lastAlertSent = alertConfig.lastAlertSent ? new Date(alertConfig.lastAlertSent).toLocaleDateString() : 'N/A';
@@ -348,32 +354,34 @@ const ProjectEndAlerts: React.FC = () => {
                           <a className="text-blue-500 hover:underline">{project.name}</a>
                         </Link>
                       </td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">
-                        {alertConfig.managerEmail}
+                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        <div className="whitespace-pre-wrap break-words">{project.description}</div>
                       </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">
-                        <div>
-                          <label className="inline-flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={alertConfig.customEmails.includes('joema@example.com')}
-                              onChange={(e) => handleEmailCheckboxChange(project.name, 'joema@example.com', e.target.checked)}
-                              className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                            />
-                            <span className="ml-2">joema@example.com</span>
-                          </label>
-                        </div>
-                        <div>
-                          <label className="inline-flex items-center">
-                            <input
-                              type="checkbox"
-                              checked={alertConfig.customEmails.includes('sanjay@example.com')}
-                              onChange={(e) => handleEmailCheckboxChange(project.name, 'sanjay@example.com', e.target.checked)}
-                              className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
-                            />
-                            <span className="ml-2">sanjay@example.com</span>
-                          </label>
-                        </div>
+                        <label className="inline-flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={!!alertConfig.managerEmail}
+                            onChange={(e) => handleManagerEmailCheckboxChange(project.name, e.target.checked)}
+                            className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                          />
+                          <span className="ml-2">{alertConfig.managerEmail || getManagerEmail(project.name, projects, users)}</span>
+                        </label>
+                      </td>
+                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">
+                        {['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
+                          <div key={email}>
+                            <label className="inline-flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={alertConfig.customEmails.includes(email)}
+                                onChange={(e) => handleEmailCheckboxChange(project.name, email, e.target.checked)}
+                                className="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out"
+                              />
+                              <span className="ml-2">{email}</span>
+                            </label>
+                          </div>
+                        ))}
                       </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">
                         {daysRemaining}

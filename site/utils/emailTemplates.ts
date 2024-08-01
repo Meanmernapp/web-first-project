@@ -16,7 +16,9 @@ export const sendProjectEndAlertEmail = (to: string[], projectName: string, endD
   const subject = `Project ${projectName} is Ending Soon`;
   const text = `Hello,
 
-This is a reminder that the project "${projectName}" is scheduled to end on ${endDate}. Please take the necessary actions to ensure everything is wrapped up smoothly.
+This is a reminder that the project "${projectName}" is scheduled to end on ${endDate}.
+
+Please double check the Purchase order for the end date and work towards getting a contract extension, where possible.
 
 Best regards,
 ${FROM_NAME}`;

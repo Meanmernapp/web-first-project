@@ -53,16 +53,16 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
           }
 
           setProjectDetails({
-            name: project.name,
-            status: project.status || "",
-            contractType,
-            periodOfPerformance: project.periodOfPerformance || { startDate: "", endDate: "" },
-            budgetHours: parseFloat(project.budgetHours.toString()) || 0,
-            description: project.description || "",
+            name: project.name || "N/A",
+            status: project.status || "N/A",
+            contractType: contractType || "N/A",
+            periodOfPerformance: project.periodOfPerformance || { startDate: "N/A", endDate: "N/A" },
+            budgetHours: project.budgetHours !== undefined ? parseFloat(project.budgetHours.toString()) : 0,
+            description: project.description || "N/A",
             pm: project.pm || "N/A",
           });
 
-          setDescription(project.description);
+          setDescription(project.description || "N/A");
         } else {
           setProjectDetails({
             name: projectId,
@@ -96,6 +96,8 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
   }, [projectId, setDescription]);
 
   const calculateRemainingMonths = (startDate: string, endDate: string) => {
+    if (!endDate || endDate === "N/A") return 0;  // Check for missing end date
+
     const today = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -110,6 +112,8 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
   };
 
   const calculateAdjustedRemainingMonths = (startDate: string, endDate: string) => {
+    if (!endDate || endDate === "N/A") return 0;  // Check for missing end date
+
     const today = new Date();
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -127,12 +131,30 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
     return remainingMonths;
   };
 
+  const getRemainingMonthNames = (endDate: string) => {
+    const today = new Date();
+    const end = new Date(endDate);
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let remainingMonths: string[] = [];
+
+    while (today <= end) {
+      remainingMonths.push(monthNames[today.getMonth()]);
+      today.setMonth(today.getMonth() + 1);
+    }
+
+    return remainingMonths.length > 0 ? remainingMonths.join(", ") : "No months remaining";
+  };
+
   const budgetHours = projectDetails?.budgetHours ?? 0;
   const hrsRemain = budgetHours !== 0 ? budgetHours - totalHours : 0; // Prevent negative hrsRemain if no budget hours
   const remainingMonths = projectDetails ? calculateAdjustedRemainingMonths(projectDetails.periodOfPerformance.startDate, projectDetails.periodOfPerformance.endDate) : 0;
 
-  let hoursRemainPerMonth = remainingMonths > 0 ? (hrsRemain / remainingMonths) : hrsRemain;
+  let hoursRemainPerMonth = remainingMonths > 0 ? (hrsRemain / remainingMonths) : 0; // Show 0 if remainingMonths is 0 or negative
   hoursRemainPerMonth = hoursRemainPerMonth < 0 ? 0 : hoursRemainPerMonth;
+
+  const remainingMonthNames = projectDetails && projectDetails.periodOfPerformance.endDate && projectDetails.periodOfPerformance.endDate !== "N/A"
+    ? getRemainingMonthNames(projectDetails.periodOfPerformance.endDate)
+    : "N/A";
 
   const formatDateString = (dateString: string) => {
     const date = new Date(dateString);
@@ -172,7 +194,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
               <span><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} </span>
             </div>
             <div className="mx-2">
-              <Tippy content="Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0.">
+              <Tippy content={`Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0. Remaining months: ${remainingMonthNames}`}>
                 <span className="flex items-center">
                   <b>Hrs/Month:</b> {hoursRemainPerMonth.toFixed(2) || "0"}
                   <FaInfoCircle className={`ml-2 ${getIconColorClass('bg-blue-500')}`} />

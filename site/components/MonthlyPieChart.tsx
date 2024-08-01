@@ -122,6 +122,8 @@ const renderActiveShape = (props: any) => {
   );
 };
 
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
 export default class MonthlyPieChart extends PureComponent<MonthlyPieChartProps, MonthlyPieChartState> {
   constructor(props: MonthlyPieChartProps) {
     super(props);
@@ -159,12 +161,12 @@ export default class MonthlyPieChart extends PureComponent<MonthlyPieChartProps,
 
     try {
       const [usersResponse, timeEntriesResponse] = await Promise.all([
-        axios.get(`/api/users`, {
+        axios.get(`${baseUrl}/api/users`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         }),
-        axios.get(`/api/time-entries`, {
+        axios.get(`${baseUrl}/api/time`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },

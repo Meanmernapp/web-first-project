@@ -337,7 +337,7 @@ function startWatching(client) {
     timer = setTimeout(() => {
       startInitialImport(client);
       newFiles = [];
-    }, 5000);
+    }, 40000);
   });
 }
 

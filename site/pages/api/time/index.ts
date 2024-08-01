@@ -3,7 +3,7 @@ import { connectDB } from '../../../models/db';
 import apiKeyMiddleware from '../../../middleware/apiKeyMiddleware';
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://ts.webfirst.com' : '*');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Adjust this for production
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
 
@@ -12,16 +12,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
     case 'GET':
       try {
-        const { projectName } = req.query;
-
-        if (!projectName || typeof projectName !== 'string') {
-          return res.status(400).json({ error: 'Invalid projectName parameter' });
-        }
-
-        const timeEntries = await db.collection('timeEntries').find({ projectName }).toArray();
-        const totalHours = timeEntries.reduce((sum, entry) => sum + (entry.hours || 0), 0);
-
-        res.status(200).json({ totalHours });
+        const timeEntries = await db.collection('timeEntries').find({}).toArray();
+        res.status(200).json(timeEntries);
       } catch (error: any) {
         console.error('Error fetching time entries:', error);
         res.status(500).json({ error: 'An error occurred while fetching time entries', details: error.message });

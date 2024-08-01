@@ -1,4 +1,3 @@
-// utils/checkProjectBudgetAlerts.ts
 import { sendBudgetAlertEmail } from './emailTemplates';
 import { connectDB } from '../models/db';
 import { WithId } from 'mongodb';
@@ -26,11 +25,30 @@ interface Project {
 }
 
 const fetchTotalHours = async (projectName: string): Promise<number> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const response = await fetch(`${baseUrl}/api/time-entries?projectName=${projectName}`);
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'; // Ensure this is set for the server-side context
+  const isServer = typeof window === 'undefined';
+  const url = isServer
+    ? `${baseUrl}/api/time-entries?projectName=${encodeURIComponent(projectName)}`
+    : `/api/time-entries?projectName=${encodeURIComponent(projectName)}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '', // Ensure you have this environment variable set
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch time entries: ${response.statusText}`);
+  }
+
   const data = await response.json();
+  console.log(`Fetched total hours for project ${projectName}:`, data.totalHours); // Log the response for debugging
   return data.totalHours;
 };
+
+
 
 export const checkProjectBudgetAlerts = async () => {
   console.log('Running checkProjectBudgetAlerts...');
@@ -45,12 +63,14 @@ export const checkProjectBudgetAlerts = async () => {
       const totalHours = await fetchTotalHours(project.name);
       const budgetHours = project.budgetHours;
 
+      console.log(`Project: ${project.name}, Total Hours: ${totalHours}, Budget Hours: ${budgetHours}`);
+
       let alertMessage = '';
       let updateFields: Partial<AlertConfig> = {};
 
-      if (totalHours >= budgetHours * alertConfig.alert80) {
+      if (totalHours >= budgetHours * (alertConfig.alert80 / 100)) {
         if (!alertConfig.lastAlert80) {
-          alertMessage = `For Project : ${project.name} - ${project.description}\n`
+          alertMessage = `For Project: ${project.name} - ${project.description}\n`
             + `Contract Type: ${project.contractType}\n`
             + `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}\n`
             + `The Actual Hours Expended on this project exceeds the budget threshold set (80%).`;
@@ -58,9 +78,9 @@ export const checkProjectBudgetAlerts = async () => {
         } else {
           console.log(`80% alert already sent for project: ${project.name}`);
         }
-      } else if (totalHours >= budgetHours * alertConfig.alert50) {
+      } else if (totalHours >= budgetHours * (alertConfig.alert50 / 100)) {
         if (!alertConfig.lastAlert50) {
-          alertMessage = `For Project : ${project.name} - ${project.description}\n`
+          alertMessage = `For Project: ${project.name} - ${project.description}\n`
             + `Contract Type: ${project.contractType}\n`
             + `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}\n`
             + `The Actual Hours Expended on this project exceeds the budget threshold set (50%).`;
@@ -71,6 +91,7 @@ export const checkProjectBudgetAlerts = async () => {
       }
 
       if (alertMessage) {
+        console.log(`Sending alert for project: ${project.name}`);
         const customEmails = Array.isArray(alertConfig.customEmails) ? alertConfig.customEmails : [];
         const recipients = [alertConfig.managerEmail, ...customEmails].filter(email => email);
         await sendBudgetAlertEmail(
@@ -79,7 +100,7 @@ export const checkProjectBudgetAlerts = async () => {
           project.description,
           project.contractType,
           `${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}`,
-          totalHours >= budgetHours * alertConfig.alert80 ? 80 : 50
+          totalHours >= budgetHours * (alertConfig.alert80 / 100) ? 80 : 50
         );
 
         await db.collection('projectAlerts').updateOne(

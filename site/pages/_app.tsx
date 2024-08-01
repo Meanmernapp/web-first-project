@@ -6,7 +6,6 @@ import '../styles/globals.css';
 
 // Ensure the environment variables are loaded
 import '../utils/config';
-import { startCronJobs } from '../cronjobs/checkProjectEndAlertsCron';
 
 Modal.setAppElement('#__next');
 

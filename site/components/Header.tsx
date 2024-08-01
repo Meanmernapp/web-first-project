@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = ({ pageTitle, description, customElement }
                   onClick={() => handleNavigation('/project-end-alerts')}
                   className="block w-full px-4 py-2 text-left text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
-                  Project Completion Alerts
+                  Contract Ending (POP) Alerts
                 </button>
               </div>
             )}
@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ pageTitle, description, customElement }
               className="w-full flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 mb-2 transition duration-300"
             >
               <FaBell className="text-xl" />
-              <span>Project Completion Alerts</span>
+              <span>Contract Ending (POP) Alerts</span>
             </button>
           </div>
         )}

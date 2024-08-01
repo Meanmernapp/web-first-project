@@ -7,6 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 interface Project {
   name: string;
+  description: string; // Added description here
   status?: string;
   pm?: string;
 }
@@ -29,12 +30,12 @@ interface AlertConfig {
 type SortKey = keyof Project | keyof AlertConfig | 'selected';
 
 const ProjectAlerts: React.FC = () => {
-  const [projects, setProjects] = useState<Project[] | null>(null);
-  const [users, setUsers] = useState<User[] | null>(null);
-  const [alertConfigs, setAlertConfigs] = useState<AlertConfig[] | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [showActive, setShowActive] = useState<boolean>(true);
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' }); // Default sort config
   const [alertConfigsState, setAlertConfigsState] = useState<AlertConfig[]>([]);
 
   useEffect(() => {
@@ -54,7 +55,8 @@ const ProjectAlerts: React.FC = () => {
           }),
         ]);
 
-        setProjects(projectsRes.data);
+        const sortedProjects = projectsRes.data.sort((a: Project, b: Project) => a.name.localeCompare(b.name));
+        setProjects(sortedProjects);
         setUsers(usersRes.data);
         setAlertConfigs(alertConfigsRes.data);
         setAlertConfigsState(alertConfigsRes.data);
@@ -68,9 +70,9 @@ const ProjectAlerts: React.FC = () => {
   }, []);
 
   const getManagerEmail = (projectName: string) => {
-    const project = projects?.find(proj => proj.name === projectName);
+    const project = projects.find(proj => proj.name === projectName);
     if (project) {
-      const user = users?.find(user => user.username === project.pm);
+      const user = users.find(user => user.username === project.pm);
       return user ? user.email : '';
     }
     return '';
@@ -120,7 +122,7 @@ const ProjectAlerts: React.FC = () => {
       const alertConfig = {
         projectName,
         managerEmail: managerEmail,
-        customEmails: ['joema@example.com', 'sanjay@example.com'], // Default checked emails
+        customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'], // Default checked emails
         alert50: 0.5,
         alert80: 0.8,
       };
@@ -129,38 +131,6 @@ const ProjectAlerts: React.FC = () => {
     }
 
     setSelectedProjects(newSelectedProjects);
-  };
-
-  const toggleSelectAllProjects = async () => {
-    const filteredProjects = projects?.filter(project =>
-      showActive ? project.status?.toLowerCase() === 'active' : project.status?.toLowerCase() !== 'active'
-    ) || [];
-
-    if (selectedProjects.size === filteredProjects.length) {
-      setSelectedProjects(new Set());
-      await Promise.all(
-        filteredProjects.map(project => removeAlertConfig(project.name))
-      );
-    } else {
-      const newSelectedProjects = new Set(filteredProjects.map(project => project.name));
-      setSelectedProjects(newSelectedProjects);
-
-      await Promise.all(
-        filteredProjects.map(async project => {
-          const managerEmail = getManagerEmail(project.name);
-
-          const alertConfig = {
-            projectName: project.name,
-            managerEmail: managerEmail,
-            customEmails: ['joema@example.com', 'sanjay@example.com'], // Default checked emails
-            alert50: 0.5,
-            alert80: 0.8,
-          };
-
-          await updateAlertConfig(alertConfig);
-        })
-      );
-    }
   };
 
   const handleInputChange = (projectName: string, field: keyof AlertConfig, value: string | number | string[]) => {
@@ -176,11 +146,11 @@ const ProjectAlerts: React.FC = () => {
       const updatedConfigs = prevConfigs.map(config =>
         config.projectName === projectName
           ? {
-            ...config,
-            customEmails: isChecked
-              ? [...config.customEmails, email]
-              : config.customEmails.filter(e => e !== email),
-          }
+              ...config,
+              customEmails: isChecked
+                ? [...config.customEmails, email]
+                : config.customEmails.filter(e => e !== email),
+            }
           : config
       );
       const updatedConfig = updatedConfigs.find(config => config.projectName === projectName);
@@ -204,9 +174,9 @@ const ProjectAlerts: React.FC = () => {
     }
   };
 
-  const filteredProjects = projects?.filter(project =>
+  const filteredProjects = projects.filter(project =>
     showActive ? project.status?.toLowerCase() === 'active' : project.status?.toLowerCase() !== 'active'
-  ) || [];
+  );
 
   const sortedProjects = [...filteredProjects].sort((a, b) => {
     if (!sortConfig) return 0;
@@ -258,15 +228,11 @@ const ProjectAlerts: React.FC = () => {
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
       <Header pageTitle="Project Alerts" />
       <ToastContainer />
-
+      <div className="p-4 bg-indigo-500 text-white rounded-md shadow-md mb-4 flex justify-center items-center text-center">
+        This page allows you to set notifications for projects reaching 50% and 80% completion.
+      </div>
       <div className="p-4">
         <div className="mb-4 flex flex-col md:flex-row justify-between">
-          <button
-            onClick={toggleSelectAllProjects}
-            className="mb-2 md:mb-0 py-2 px-4 bg-gray-500 dark:bg-indigo-600 hover:bg-gray-600 dark:hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {selectedProjects.size === filteredProjects.length ? 'Deselect All' : 'Select All'}
-          </button>
           <button
             onClick={() => setShowActive(!showActive)}
             className="py-2 px-4 bg-gray-500 dark:bg-indigo-600 hover:bg-gray-600 dark:hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -284,6 +250,9 @@ const ProjectAlerts: React.FC = () => {
                   </th>
                   <th onClick={() => handleSort('name')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
                     Project Name
+                  </th>
+                  <th onClick={() => handleSort('description')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                    Description
                   </th>
                   <th onClick={() => handleSort('pm')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
                     Project Manager
@@ -325,10 +294,13 @@ const ProjectAlerts: React.FC = () => {
                           <a className="text-blue-500 hover:underline">{project.name}</a>
                         </Link>
                       </td>
+                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        <div className="whitespace-pre-wrap break-words">{project.description}</div>
+                      </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{project.pm}</td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
-                          {['joema@example.com', 'sanjay@example.com'].map(email => (
+                          {['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
                             <label key={email} className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
