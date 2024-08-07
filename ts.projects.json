@@ -1,0 +1,435 @@
+[{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3462"
+  },
+  "name": "ABC-001",
+  "budgetHours": 818,
+  "contractType": "Fixed Price",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.154Z"
+  },
+  "description": "API Integration",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-09-29T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-09-28T00:00:00.000Z"
+    }
+  },
+  "pm": "Eva Green",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.538Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3464"
+  },
+  "name": "ABC-002",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.154Z"
+  },
+  "description": "Database Optimization",
+  "pm": "Alice Johnson",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.538Z"
+  },
+  "budgetHours": 1153,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-05-31T00:00:00.000Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e346b"
+  },
+  "name": "CIA-01",
+  "budgetHours": 3150,
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.161Z"
+  },
+  "description": "Database Optimization",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-07-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-06-30T00:00:00.000Z"
+    }
+  },
+  "pm": "Alice Johnson",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:09:40.912Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e346d"
+  },
+  "name": "CIA-04",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.163Z"
+  },
+  "description": "Network Infrastructure Upgrade",
+  "pm": "Frank Harris",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.542Z"
+  },
+  "budgetHours": 605,
+  "contractType": "Fixed Price",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2024-04-16T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-09-30T00:00:00.000Z"
+    }
+  },
+  "status": "Active"
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3473"
+  },
+  "name": "DEF-202",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.169Z"
+  },
+  "description": "SEO Improvement",
+  "pm": "Alice Johnson",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.543Z"
+  },
+  "budgetHours": 990,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-15T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2026-06-14T00:00:00.000Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3475"
+  },
+  "name": "DEF-201",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.169Z"
+  },
+  "description": "App Development",
+  "pm": "Peter Young",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:09:41.098Z"
+  },
+  "budgetHours": 990,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-15T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2026-06-14T00:00:00.000Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3477"
+  },
+  "name": "MMA-102",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.170Z"
+  },
+  "description": "Website Redesign",
+  "pm": "Charlie Davis",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.544Z"
+  },
+  "budgetHours": 605,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2024-04-16T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-09-30T00:00:00.000Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e347e"
+  },
+  "name": "CIA-03",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.174Z"
+  },
+  "description": "Customer Support Enhancement",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-05-31T00:00:00.000Z"
+    }
+  },
+  "pm": "David Evans",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:09:41.098Z"
+  },
+  "budgetHours": 1153
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3480"
+  },
+  "name": "MMA-104",
+  "budgetHours": 818,
+  "contractType": "Fixed Price",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.183Z"
+  },
+  "description": "App Development",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-09-29T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-09-28T00:00:00.000Z"
+    }
+  },
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.544Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3482"
+  },
+  "name": "MMA-105",
+  "contractType": "Fixed Price",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.183Z"
+  },
+  "description": "App Development",
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.545Z"
+  },
+  "budgetHours": 1946,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-03-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2024-04-30T00:00:00.000Z"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3484"
+  },
+  "name": "WEBFIRST-016",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.183Z"
+  },
+  "description": "App Development",
+  "pm": "Jane Smith",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.555Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e348c"
+  },
+  "name": "WEBFIRST-12",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.191Z"
+  },
+  "description": "Cloud Migration",
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.555Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e348d"
+  },
+  "name": "WEBFIRST-14",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.191Z"
+  },
+  "description": "Website Redesign",
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:08:48.781Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e348f"
+  },
+  "name": "XYZ-102",
+  "budgetHours": 1266,
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.192Z"
+  },
+  "description": "SEO Improvement",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2024-06-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2025-05-31T00:00:00.000Z"
+    }
+  },
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.558Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3491"
+  },
+  "name": "XYZ-101",
+  "contractType": "Fixed Price",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.192Z"
+  },
+  "description": "Network Infrastructure Upgrade",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2024-03-15T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2025-03-14T00:00:00.000Z"
+    }
+  },
+  "pm": "Grace Lee",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.557Z"
+  },
+  "budgetHours": 2304
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e3499"
+  },
+  "name": "WEBFIRST-01",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.196Z"
+  },
+  "description": "Mobile App Testing",
+  "pm": "David Evans",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.555Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e349e"
+  },
+  "name": "XYZ-103",
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.203Z"
+  },
+  "description": "Marketing Campaign",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-15T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2026-06-14T00:00:00.000Z"
+    }
+  },
+  "pm": "Bob Brown",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.558Z"
+  },
+  "budgetHours": 990
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e34a9"
+  },
+  "name": "CIA-02",
+  "budgetHours": 990,
+  "contractType": "Time and Materials",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.210Z"
+  },
+  "description": "E-commerce Platform Upgrade",
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2023-06-15T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2026-06-14T00:00:00.000Z"
+    }
+  },
+  "pm": "Grace Lee",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.540Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0eb00422f882d955e34b8"
+  },
+  "name": "MMA-103",
+  "contractType": "Fixed Price",
+  "createdAt": {
+    "$date": "2024-08-05T15:08:48.219Z"
+  },
+  "description": "Website Redesign",
+  "pm": "John Doe",
+  "status": "Active",
+  "updatedAt": {
+    "$date": "2024-08-05T15:11:01.544Z"
+  },
+  "budgetHours": 818,
+  "periodOfPerformance": {
+    "startDate": {
+      "$date": "2024-08-01T00:00:00.000Z"
+    },
+    "endDate": {
+      "$date": "2025-01-31T00:00:00.000Z"
+    }
+  }
+}]

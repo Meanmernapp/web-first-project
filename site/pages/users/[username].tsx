@@ -72,6 +72,7 @@ const UserPage: React.FC = () => {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
+
         setUser(userResponse.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {

@@ -20,22 +20,23 @@ type User = {
 };
 
 type UserTimeEntriesResponse = {
-  userProjects: { projectName: string; [month: string]: number | string }[];
+  userProjects: { projectName: string;[month: string]: number | string }[];
   months: string[];
   totals: { [month: string]: number };
 };
 
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 const Staff: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{ key: keyof User | 'utilization'; direction: 'ascending' | 'descending' } | null>(null);
-  const [userUtilizations, setUserUtilizations] = useState<{ [key: string]: number }>({});
   const [showContractors, setShowContractors] = useState<'Active' | 'Terminated'>('Active');
   const [showFullTime, setShowFullTime] = useState<'Active' | 'Terminated'>('Active');
+  const [users, setUsers] = useState<User[]>([]);
+  const [userUtilizations, setUserUtilizations] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const router = useRouter();
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -54,57 +55,64 @@ const Staff: React.FC = () => {
     fetchUsers();
   }, [baseUrl]);
 
-  useEffect(() => {
-    const fetchUserTimeEntries = async (username: string) => {
-      try {
-        const res = await axios.get(`${baseUrl}/api/user-time-entries/${encodeURIComponent(username)}`, {
-          headers: {
-            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
-          },
-        });
-        return res.data as UserTimeEntriesResponse;
-      } catch (error) {
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          return null;
-        } else {
-          return null;
-        }
+  const fetchUserTimeEntries = async (username: string) => {
+    try {
+      const res = await axios.get(`${baseUrl}/api/user-time-entries/${encodeURIComponent(username)}`, {
+        headers: {
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+        },
+      });
+      console.log(res.data)
+      return res.data as UserTimeEntriesResponse;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      } else {
+        return null;
       }
-    };
-
+    }
+  };
+  useEffect(() => {
     const calculateUtilization = async () => {
       setLoading(true);
       setFetchError(null);
 
       try {
-        const utilization: { [key: string]: number } = {};
-
-        for (const user of users) {
+        const utilizationPromises = users.map(async (user) => {
           const timeEntries = await fetchUserTimeEntries(user.username);
-          if (timeEntries) {
-            let totalHours = 0;
-            let webFirstHours = 0;
+          if (!timeEntries) return [user.username, 0];
 
-            timeEntries.userProjects.forEach((project) => {
-              Object.keys(project).forEach((month) => {
-                if (month !== 'projectName') {
-                  const hours = Number(project[month]);
+          const { totalHours, webFirstHours } = timeEntries.userProjects.reduce(
+            (acc, project) => {
+              Object.entries(project).forEach(([month, value]) => {
+                if (month !== 'projectName' && month.startsWith('2024')) {
+                  const hours = Number(value);
                   if (!isNaN(hours)) {
-                    totalHours += hours;
+                    acc.totalHours += hours;
                     if (project.projectName.startsWith('WEBFIRST')) {
-                      webFirstHours += hours;
+                      acc.webFirstHours += hours;
                     }
                   }
                 }
               });
-            });
+              return acc;
+            },
+            { totalHours: 0, webFirstHours: 0 }
+          );
 
-            utilization[user.username] = totalHours ? ((totalHours - webFirstHours) / totalHours) * 100 : 0;
-          }
-        }
+          const utilizationPercentage = totalHours ? ((totalHours - webFirstHours) / totalHours) * 100 : 0;
+          return [user.username, utilizationPercentage];
+        });
 
+        const settledResults = await Promise.allSettled(utilizationPromises);
+        const successfulResults = settledResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => (result as PromiseFulfilledResult<[string, number]>).value);
+
+        const utilization = Object.fromEntries(successfulResults);
         setUserUtilizations(utilization);
       } catch (error) {
+        console.error('Error calculating utilization:', error);
         setFetchError('Error calculating utilization.');
       } finally {
         setLoading(false);
@@ -115,7 +123,6 @@ const Staff: React.FC = () => {
       calculateUtilization();
     }
   }, [baseUrl, users]);
-
   const sortedUsers = React.useMemo(() => {
     if (!users) return [];
     let sortableUsers = [...users];

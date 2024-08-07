@@ -1,0 +1,228 @@
+[{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4ca4"
+  },
+  "username": "John Doe",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email13@example.com",
+  "employeeType": "Full Time",
+  "firstName": "John",
+  "lastName": "Doe",
+  "status": "Active",
+  "supervisor": "Eva Green",
+  "title": "Director",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4ca5"
+  },
+  "username": "Jane Smith",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email14@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "status": "Active",
+  "supervisor": "Eva Green",
+  "title": "Business Analyst Lead Manager",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4ca7"
+  },
+  "username": "Alice Johnson",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email15@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "status": "Active",
+  "supervisor": "Frank Harris",
+  "title": "Front End Drupal Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4ca8"
+  },
+  "username": "Bob Brown",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email1@example.com",
+  "employeeType": "Contractor",
+  "firstName": "Bob",
+  "lastName": "Brown",
+  "status": "Active",
+  "supervisor": "Jane Smith",
+  "title": "Sr. Drupal Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4ca9"
+  },
+  "username": "Charlie Davis",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email2@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Charlie",
+  "lastName": "Davis",
+  "status": "Active",
+  "supervisor": "Jane Smith",
+  "title": "Drupal Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4caa"
+  },
+  "username": "David Evans",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email3@example.com",
+  "employeeType": "Full Time",
+  "firstName": "David",
+  "lastName": "Evans",
+  "status": "Active",
+  "supervisor": "Sarah White",
+  "title": "Business Analyst",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4cab"
+  },
+  "username": "Eva Green",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email4@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Eva",
+  "lastName": "Green",
+  "status": "Active",
+  "supervisor": "Peter Young",
+  "title": "VP of Operations",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4cac"
+  },
+  "username": "Frank Harris",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email5@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Frank",
+  "lastName": "Harris",
+  "status": "Active",
+  "supervisor": "David Evans",
+  "title": "Lead Drupal Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4cad"
+  },
+  "username": "Grace Lee",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email6@example.com",
+  "employeeType": "Contractor",
+  "firstName": "Grace",
+  "lastName": "Lee",
+  "status": "Terminated",
+  "supervisor": "David Evans",
+  "title": "Lead Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4cae"
+  },
+  "username": "Henry Martin",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email7@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Henry",
+  "lastName": "Martin",
+  "status": "Active",
+  "supervisor": "Frank Harris",
+  "title": "Front End Drupal Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4caf"
+  },
+  "username": "Sarah White",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email8@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Sarah",
+  "lastName": "White",
+  "status": "Terminated",
+  "supervisor": "Eva Green",
+  "title": "Sr. Developer",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "66b0f083422f882d955e4cb0"
+  },
+  "username": "Peter Young",
+  "createdAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  },
+  "email": "fake.email9@example.com",
+  "employeeType": "Full Time",
+  "firstName": "Peter",
+  "lastName": "Young",
+  "status": "Active",
+  "supervisor": "John Doe",
+  "title": "President",
+  "updatedAt": {
+    "$date": "2024-08-05T15:32:19.589Z"
+  }
+}]

@@ -7,6 +7,7 @@ import Header from '../components/Header';
 interface Project {
   name: string;
   status?: string;
+  contractType?: string
 }
 
 const Dashboard: React.FC = () => {
@@ -143,7 +144,11 @@ const Dashboard: React.FC = () => {
                   onClick={() => handleProjectSelect(project)}
                 >
                   <div className="flex justify-between items-center">
-                    <span className="break-words">{project.name}</span>
+                    <span className='flex gap-1 items-center'>
+                      <span className="break-words">{project.name}</span>
+                      <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FPP)"}</span>
+
+                    </span>
                     <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
                       {project.status}
                     </span>
