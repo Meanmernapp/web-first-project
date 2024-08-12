@@ -25,10 +25,16 @@ interface User {
   username: string;
   employeeType: string;
   title: string; // Include title here
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ProjectProps {
   projectId: string;
+}
+interface LatestDates {
+  createdAt: string;
+  updatedAt: string;
 }
 
 const Project: React.FC<ProjectProps> = ({ projectId }) => {
@@ -41,6 +47,10 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   const [error, setError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'username', direction: 'asc' });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<LatestDates>({
+    createdAt: new Date().toDateString(),
+    updatedAt: new Date().toDateString()
+  });
   const [dateRange, setDateRange] = useState<Range[]>([
     {
       startDate: new Date('2023-01-01'),
@@ -75,6 +85,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
         })
       ]);
 
+
       const { userHours, months } = entriesResponse.data;
       const users: User[] = usersResponse.data;
 
@@ -99,11 +110,28 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
           filteredTotals[month] = entriesResponse.data.totals[month];
         }
       });
+      // Function to convert ISO date string to Date object
+      const parseDate = (dateString: string): Date => new Date(dateString);
 
+      // Function to find the latest entry based on a date field
+      const findLatestEntry = (data: User[], field: keyof User): User => {
+        return data.reduce((latest, entry) => {
+          return parseDate(entry[field] as string) > parseDate(latest[field] as string) ? entry : latest;
+        }, data[0]);
+      };
+
+
+
+      // Find the latest entries by createdAt and updatedAt
+      const createdAt = new Date(findLatestEntry(users, 'createdAt').createdAt).toLocaleDateString();
+      const updatedAt = new Date(findLatestEntry(users, 'updatedAt').updatedAt).toLocaleDateString();
+
+      setLastUpdated({ createdAt, updatedAt })
       const userDetailsMap: { [key: string]: User } = {};
       users.forEach(user => {
         userDetailsMap[user.username] = user;
       });
+
 
       setAllUserHours(filteredUserHours);
       setAllMonths(validMonths);
@@ -119,7 +147,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
     if (!startDate || !endDate) {
       return;
     }
-    
+
     const filteredMonths = monthsData.filter(month => {
       const date = parseISO(month);
       return isWithinInterval(date, { start: startDate, end: endDate });
@@ -192,7 +220,9 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
           <div className="overflow-x-auto shadow-lg rounded-lg mt-8">
             <div className="flex justify-between items-center mb-4">
               <div className="text-lg font-bold text-gray-800 dark:text-gray-100">
-                User Hours Report
+                User Hours Report:  <span className="text-sm ml-2 text-gray-600 dark:text-gray-400">
+                  Data as of: {lastUpdated.createdAt}
+                </span>
               </div>
               <button
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -201,7 +231,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                 Select Date Range
               </button>
             </div>
-            
+
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
               <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                 <tr>
@@ -223,29 +253,36 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   <th className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">Total Hours</th>
                 </tr>
               </thead>
-              <tbody className="text-gray-900 dark:text-gray-200">
-                {sortedUserHours.map((user: MonthlyUserHours) => {
-                  const userType = userDetails[user.username]?.employeeType;
-                  const displayName = userType === 'Contractor' ? `${user.username} (C)` : user.username;
-                  return (
-                    <tr key={user.username}>
-                      <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
-                        <Link href={`/users/${user.username}`} legacyBehavior>
-                          <a className="text-blue-500 hover:underline">{displayName}</a>
-                        </Link>
-                      </td>
-                      {months.map((month: string) => (
-                        <td key={month} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
-                          {user[month] !== '-' ? Number(user[month] ?? 0).toFixed(2) : user[month]}
+
+
+              <tbody>
+                {sortedUserHours
+                  .filter((user: MonthlyUserHours) =>
+                    months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0) > 0
+                  )
+                  .map((user: MonthlyUserHours) => {
+                    const userType = userDetails[user.username]?.employeeType;
+                    const displayName = userType === 'Contractor' ? `${user.username} (C)` : user.username;
+                    return (
+                      <tr key={user.username}>
+                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
+                          <Link href={`/users/${user.username}`} legacyBehavior>
+                            <a className="text-blue-500 hover:underline">{displayName}</a>
+                          </Link>
                         </td>
-                      ))}
-                      <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
-                        {months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0).toFixed(2)}
-                      </td>
-                    </tr>
-                  );
-                })}
+                        {months.map((month: string) => (
+                          <td key={month} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                            {user[month] !== '-' ? Number(user[month] ?? 0).toFixed(2) : user[month]}
+                          </td>
+                        ))}
+                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                          {months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
+
               <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                 <tr>
                   <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left">Total</th>

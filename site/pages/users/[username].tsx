@@ -39,6 +39,10 @@ interface DateRange {
   endDate: Date;
   key: string;
 }
+interface LatestDates {
+  createdAt: string;
+  updatedAt: string;
+}
 
 const UserPage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -51,6 +55,10 @@ const UserPage: React.FC = () => {
   const [utilizations, setUtilizations] = useState<Utilizations>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<LatestDates>({
+    createdAt: new Date().toDateString(),
+    updatedAt: new Date().toDateString()
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange[]>([
     {
@@ -91,8 +99,10 @@ const UserPage: React.FC = () => {
           },
         });
 
-        const { userProjects, months } = entriesResponse.data;
+        const { userProjects, months, latestUpdate } = entriesResponse.data;
 
+        setLastUpdated(latestUpdate);
+        console.log(latestUpdate)
         let validMonths = months.filter((month: string) => {
           const date = parseISO(month);
           return isValid(date) && date.getFullYear() > 1970;
@@ -129,7 +139,11 @@ const UserPage: React.FC = () => {
         }
 
         const filteredUserProjects = userProjects.map((project: MonthlyUserHours) => {
-          const filteredProject: MonthlyUserHours = { projectName: project.projectName };
+          // Include contractType explicitly in the new object
+          const filteredProject: MonthlyUserHours = {
+            projectName: project.projectName,
+            contractType: project.contractType, // Ensure contractType is copied over
+          };
           validMonths.forEach((month: string) => {
             if (project[month] !== undefined) {
               filteredProject[month] = project[month];
@@ -139,6 +153,7 @@ const UserPage: React.FC = () => {
         }).filter((project: MonthlyUserHours) => {
           return validMonths.some((month: string) => project[month] !== undefined && project[month] !== 0 && project[month] !== '-');
         });
+
 
         if (filteredUserProjects.length === 0) {
           setError(null);  // Reset the error since no data is different from a fetch error
@@ -330,7 +345,9 @@ const UserPage: React.FC = () => {
       <div className="overflow-x-auto shadow-lg rounded-lg mt-8">
         <div className="flex justify-between items-center mb-4">
           <div className="text-lg font-bold text-gray-800 dark:text-gray-100">
-            User Hours Report
+            User Hours Report <span className="text-sm ml-2 text-gray-600 dark:text-gray-400">
+              Data as of: {lastUpdated.createdAt}
+            </span>
           </div>
           <button
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -377,7 +394,8 @@ const UserPage: React.FC = () => {
                 <tr key={project.projectName}>
                   <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
                     <Link href={`/project/${project.projectName}`} legacyBehavior>
-                      <a className="text-blue-500 hover:underline">{project.projectName}</a>
+                      <a className="text-blue-500 hover:underline">{project.projectName} {project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</a>
+
                     </Link>
                   </td>
                   {months.map((month: string) => (

@@ -146,7 +146,7 @@ const Dashboard: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className='flex gap-1 items-center'>
                       <span className="break-words">{project.name}</span>
-                      <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FPP)"}</span>
+                      <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</span>
 
                     </span>
                     <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
