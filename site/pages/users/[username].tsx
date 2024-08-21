@@ -231,7 +231,7 @@ const UserPage: React.FC = () => {
     };
 
     if (username) {
-      fetchUserData();
+      // fetchUserData();
       fetchTimeEntries();
     }
   }, [username, filter, startDate, endDate]);
