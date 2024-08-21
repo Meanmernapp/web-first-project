@@ -39,6 +39,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const newEntries = await db.collection('timeEntries').aggregate([
       {
+        $match: { username: username }  // Replace "your_username" with the actual username
+      },
+      {
         $lookup: {
           from: "projects",
           localField: "projectName",
