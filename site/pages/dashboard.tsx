@@ -8,6 +8,8 @@ interface Project {
   name: string;
   status?: string;
   contractType?: string
+  budgetHours?: number
+  projectTotalHours?: number
 }
 
 const Dashboard: React.FC = () => {
@@ -137,28 +139,65 @@ const Dashboard: React.FC = () => {
           <div key={prefix} className="border border-gray-400 rounded-lg p-4 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-md">
             <h3 className="text-xl font-bold mb-2">{prefix}</h3>
             <div className="space-y-2">
-              {groupProjectsByPrefix(filteredProjects)[prefix].map(project => (
-                <button
-                  key={project.name}
-                  className="w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg bg-gray-200 dark:bg-gray-900 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  onClick={() => handleProjectSelect(project)}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className='flex gap-1 items-center'>
-                      <span className="break-words">{project.name}</span>
-                      <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</span>
+              {groupProjectsByPrefix(filteredProjects)[prefix].map(project => {
+                let hrsRemain = project.budgetHours && project.projectTotalHours && ((project.budgetHours - project.projectTotalHours));
+                let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
 
-                    </span>
-                    <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
-                      {project.status}
-                    </span>
-                  </div>
-                </button>
-              ))}
+                // Determine the color based on the progress
+                let bgColor = 'bg-gray-500'; // Default color (less than 70%)
+                if (progress)
+                  if (progress <= 30) {
+                    bgColor = 'bg-red-500'; // More than 85% used or negative remaining hours
+                  } else if (progress > 30 && progress <= 85) {
+                    bgColor = 'bg-yellow-500'; // Between 70% and 85% used
+                  }
+
+                return (
+                  <button
+                    key={project.name}
+                    className={`w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg ${bgColor} hover:bg-opacity-75 text-gray-900 dark:text-gray-200`}
+
+                    onClick={() => handleProjectSelect(project)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className='flex gap-1 items-center'>
+                        <span className="break-words">{project.name}</span>
+                        <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</span>
+
+                      </span>
+                      <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
+                        {project.status}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         ))}
       </div>
+      <div className="mt-8 p-4 border border-gray-400 dark:border-gray-700 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-md">
+        <h3 className="text-lg font-bold mb-4">Budget Usage Indicators</h3>
+        <div className="flex flex-col items-start ">
+          {/* Gray Box */}
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-4 h-4  bg-gray-500 rounded-md "></div>
+            <span className="text-center">0-70% of budget</span>
+          </div>
+          {/* Yellow Box */}
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-4 h-4  bg-yellow-500 rounded-md "></div>
+            <span className="text-center">70-85% of budget</span>
+          </div>
+
+          {/* Red Box */}
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-4 h-4  bg-red-500 rounded-md "></div>
+            <span className="text-center">Greater than 85% or negative</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };

@@ -191,7 +191,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
               <span><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
             </div>
             <div className="mx-2">
-              <span><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} </span>
+              <span><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} ({(((hrsRemain) / (budgetHours)) * 100).toFixed(1) + `%`}) </span>
             </div>
             <div className="mx-2">
               <Tippy content={`Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0. Remaining months: ${remainingMonthNames}`}>

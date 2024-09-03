@@ -195,7 +195,7 @@ const Staff: React.FC = () => {
               <th onClick={() => requestSort('supervisor')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer">Supervisor</th>
               <th onClick={() => requestSort('utilization')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer flex items-center">
                 Utilization (%)
-                <Tippy content="Utilization data is calculated based on the selected date range.">
+                <Tippy content="Utilization % calculated as Non-WebFirst Hours (all hrs except WebFirst-016) / Total Hours worked , for the selected time period">
                   <span className="ml-2 text-blue-500 cursor-pointer"><FaInfoCircle /></span>
                 </Tippy>
               </th>
