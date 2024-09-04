@@ -196,7 +196,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
             <div className="mx-2">
               <Tippy content={`Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0. Remaining months: ${remainingMonthNames}`}>
                 <span className="flex items-center">
-                  <b>Hrs/Month:</b> {hoursRemainPerMonth.toFixed(2) || "0"}
+                  <b>Hrs/Month:&nbsp; </b> {hoursRemainPerMonth.toFixed(2) || " 0"}
                   <FaInfoCircle className={`ml-2 ${getIconColorClass('bg-blue-500')}`} />
                 </span>
               </Tippy>

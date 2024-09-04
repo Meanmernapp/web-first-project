@@ -30,23 +30,31 @@ function getLastFriday() {
   return lastFriday;
 }
 
+// Function to calculate two months back from today
+function getTwoMonthsBack() {
+  return moment().subtract(2, "months").startOf("day");
+}
 // Function to archive and delete old time entries
 async function archiveAndDeleteOldTimeEntries(db) {
   const timeEntriesCollection = db.collection("timeEntries");
   const archiveTimeEntriesCollection = db.collection("archiveTimeEntries");
 
   const lastFriday = getLastFriday().toDate();
+  const twoMonthsBack = getTwoMonthsBack().toDate();
 
   const oldEntries = await timeEntriesCollection
     .find({
-      date: { $lt: lastFriday },
+      date: { $gte: twoMonthsBack, $lt: lastFriday },
     })
     .toArray();
 
   if (oldEntries.length > 0) {
+    //add data into archive collection
     await archiveTimeEntriesCollection.insertMany(oldEntries);
+
+    //delete data from main collection
     await timeEntriesCollection.deleteMany({
-      date: { $lt: lastFriday },
+      date: { $gte: twoMonthsBack, $lt: lastFriday },
     });
     console.log(`Archived and deleted old time entries up to ${lastFriday}.`);
   }

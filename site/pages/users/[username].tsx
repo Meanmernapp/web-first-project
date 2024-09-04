@@ -75,12 +75,12 @@ const UserPage: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const userResponse = await axios.get(`${baseUrl}/api/users/${encodeURIComponent(username)}`, {
+        const userResponse = await axios.get(`${baseUrl}/api/users/${username}`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
-
+        
         setUser(userResponse.data);
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
@@ -231,7 +231,7 @@ const UserPage: React.FC = () => {
     };
 
     if (username) {
-       fetchUserData();
+      fetchUserData();
       fetchTimeEntries();
     }
   }, [username, filter, startDate, endDate]);
@@ -383,34 +383,34 @@ const UserPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="text-gray-900 dark:text-gray-100">
-  {sortedUserProjects.length === 0 ? (
-    <tr>
-      <td colSpan={months.length + 2} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
-        No data available for this user.
-      </td>
-    </tr>
-  ) : (
-    sortedUserProjects.map((project: MonthlyUserHours) => (
-      <tr key={project.projectName}>
-        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
-          <Link href={`/project/${project.projectName}`} legacyBehavior>
-            <a className="text-blue-500 dark:text-blue-400 hover:underline">
-              {project.projectName} {project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}
-            </a>
-          </Link>
-        </td>
-        {months.map((month: string) => (
-          <td key={month} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
-            {project[month] !== '-' ? Number(project[month] ?? 0).toFixed(2) : project[month]}
-          </td>
-        ))}
-        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
-          {months.reduce((total, month: string) => total + (project[month] !== '-' ? Number(project[month] ?? 0) : 0), 0).toFixed(2)}
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
+            {sortedUserProjects.length === 0 ? (
+              <tr>
+                <td colSpan={months.length + 2} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                  No data available for this user.
+                </td>
+              </tr>
+            ) : (
+              sortedUserProjects.map((project: MonthlyUserHours) => (
+                <tr key={project.projectName}>
+                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
+                    <Link href={`/project/${project.projectName}`} legacyBehavior>
+                      <a className="text-blue-500 dark:text-blue-400 hover:underline">
+                        {project.projectName} {project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}
+                      </a>
+                    </Link>
+                  </td>
+                  {months.map((month: string) => (
+                    <td key={month} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                      {project[month] !== '-' ? Number(project[month] ?? 0).toFixed(2) : project[month]}
+                    </td>
+                  ))}
+                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                    {months.reduce((total, month: string) => total + (project[month] !== '-' ? Number(project[month] ?? 0) : 0), 0).toFixed(2)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
 
           <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
             <tr>

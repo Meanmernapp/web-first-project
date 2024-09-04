@@ -144,11 +144,11 @@ const Dashboard: React.FC = () => {
                 let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
 
                 // Determine the color based on the progress
-                let bgColor = 'bg-gray-500'; // Default color (less than 70%)
+                let bgColor = 'bg-red-500'; // Default color (less than 70%)
                 if (progress)
-                  if (progress <= 30) {
-                    bgColor = 'bg-red-500'; // More than 85% used or negative remaining hours
-                  } else if (progress > 30 && progress <= 85) {
+                  if (progress >= 0 && progress < 70) {
+                    bgColor = 'bg-gray-300'; // More than 85% used or negative remaining hours
+                  } else if (progress >= 70 && progress <= 85) {
                     bgColor = 'bg-yellow-500'; // Between 70% and 85% used
                   }
 
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col items-start ">
           {/* Gray Box */}
           <div className="flex items-center justify-center gap-2">
-            <div className="w-4 h-4  bg-gray-500 rounded-md "></div>
+            <div className="w-4 h-4  bg-gray-300 rounded-md "></div>
             <span className="text-center">0-70% of budget</span>
           </div>
           {/* Yellow Box */}
