@@ -153,7 +153,7 @@ const ProjectEndAlerts: React.FC = () => {
       const alertConfig = {
         projectName,
         managerEmail: projectManagerEmail,
-        customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
+        customEmails: ['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
       };
       newSelectedProjects.add(projectName);
       await updateAlertConfig(alertConfig);
@@ -331,7 +331,7 @@ const ProjectEndAlerts: React.FC = () => {
                   const alertConfig = alertConfigs.find(config => config.projectName === project.name) || {
                     projectName: project.name,
                     managerEmail: getManagerEmail(project.name, projects, users),
-                    customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
+                    customEmails: ['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
                   };
 
                   const isSelected = selectedProjects.has(project.name);
@@ -369,7 +369,7 @@ const ProjectEndAlerts: React.FC = () => {
                         </label>
                       </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-200">
-                        {['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
+                        {['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
                           <div key={email}>
                             <label className="inline-flex items-center">
                               <input
