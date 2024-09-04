@@ -1,5 +1,7 @@
+import Tippy from '@tippyjs/react';
 import React, { useEffect, useState } from 'react';
-
+import { FaInfoCircle } from 'react-icons/fa';
+import 'tippy.js/dist/tippy.css';
 interface UserInfoProps {
   username: string;
   totalUtilization: number;
@@ -75,8 +77,11 @@ const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
             <div className="mx-2">
               <span><b>Supervisor:</b> {userDetails?.supervisor ?? 'N/A'}</span>
             </div>
-            <div className="mx-2">
-              <span><b>Utilization over this period:</b> {totalUtilization.toFixed(2)}%</span>
+            <div className="mx-2 flex items-center">
+              <span><b>Utilization over this period:</b> {totalUtilization.toFixed(2)}%  </span>
+              {/* <Tippy content="Utilization % calculated as Non-WebFirst Hours (all hrs except WebFirst-016) / Total Hours worked , for the selected time period">
+                <span className="ml-2 text-red-500 cursor-pointer"><FaInfoCircle /></span>
+              </Tippy> */}
             </div>
           </div>
         </div>
