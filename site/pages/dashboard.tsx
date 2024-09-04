@@ -142,13 +142,17 @@ const Dashboard: React.FC = () => {
               {groupProjectsByPrefix(filteredProjects)[prefix].map(project => {
                 let hrsRemain = project.budgetHours && project.projectTotalHours && ((project.budgetHours - project.projectTotalHours));
                 let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
+                let hrsUsed = project.budgetHours && project.projectTotalHours && project.projectTotalHours;
+                let progressUsed = hrsUsed && project.budgetHours && Math.round((hrsUsed / project.budgetHours) * 100);
 
+                console.log(hrsRemain, progress, hrsUsed, progressUsed);
                 // Determine the color based on the progress
-                let bgColor = 'bg-red-500'; // Default color (less than 70%)
-                if (progress)
-                  if (progress >= 0 && progress < 70) {
-                    bgColor = 'bg-gray-300'; // More than 85% used or negative remaining hours
-                  } else if (progress >= 70 && progress <= 85) {
+                let bgColor = 'bg-gray-300'; // Default color (less than 70%)
+                if (progressUsed && progress)
+
+                  if (progress < 0 || progressUsed > 85) {
+                    bgColor = 'bg-red-500'; // More than 85% used or negative remaining hours
+                  } else if (progressUsed >= 70 && progressUsed <= 85) {
                     bgColor = 'bg-yellow-500'; // Between 70% and 85% used
                   }
 

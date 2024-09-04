@@ -32,7 +32,8 @@ function getLastFriday() {
 
 // Function to calculate two months back from today
 function getTwoMonthsBack() {
-  return moment().subtract(2, "months").startOf("day");
+  const lastFriday = getLastFriday();
+  return lastFriday.subtract(60, "days").startOf("day");
 }
 // Function to archive and delete old time entries
 async function archiveAndDeleteOldTimeEntries(db) {
