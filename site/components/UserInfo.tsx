@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import Tippy from '@tippyjs/react';
+import 'tippy.js/dist/tippy.css'; // Required CSS for Tippy
+import { FaInfoCircle } from 'react-icons/fa';
 
 interface UserInfoProps {
   username: string;
@@ -64,8 +67,8 @@ const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
   return (
     <div className="w-full">
       <div className="flex justify-between items-center">
-        <div className="bg-blue-500 rounded-md p-4 m-auto max-w-full text-center">
-          <div className="flex justify-center items-center text-black">
+        <div className="bg-blue-500 dark:bg-blue-700 rounded-md p-4 m-auto max-w-full text-center">
+          <div className="flex justify-center items-center text-black dark:text-white">
             <div className="mx-2">
               <span><b>Type:</b> {userDetails?.employeeType ?? 'N/A'}</span>
             </div>
@@ -75,8 +78,18 @@ const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
             <div className="mx-2">
               <span><b>Supervisor:</b> {userDetails?.supervisor ?? 'N/A'}</span>
             </div>
-            <div className="mx-2">
+            <div className="mx-2 flex items-center">
               <span><b>Utilization over this period:</b> {totalUtilization.toFixed(2)}%</span>
+              {/* Tippy Tooltip for Utilization Explanation */}
+              <Tippy
+                content="Utilization % calculated as Non-WebFirst Hours (all hrs except WebFirst-xxx) / Total Hours worked, for the selected time period"
+                placement="top"
+                className="z-50"
+                theme=""
+              >
+                {/* Custom Icon Color based on Dark/Light Mode */}
+                <span className="ml-2 cursor-pointer text-gray-600 dark:text-blue-300"><FaInfoCircle /></span>
+              </Tippy>
             </div>
           </div>
         </div>

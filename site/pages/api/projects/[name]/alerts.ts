@@ -10,7 +10,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   switch (req.method) {
     case 'POST':
       try {
-        const { managerEmail, customEmails, alert50, alert80 } = req.body;
+        const { managerEmail, customEmails, lowAlert, highAlert } = req.body;
         const project = await db.collection('projects').findOne({ name: name as string });
         if (!project) {
           return res.status(404).json({ error: 'Project not found' });
@@ -23,8 +23,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               projectName: name as string,
               managerEmail,
               customEmails,
-              alert50,
-              alert80,
+              lowAlert,
+              highAlert,
               createdAt: new Date(),
               updatedAt: new Date()
             }
