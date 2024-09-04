@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 interface Project {
   name: string;
-  description: string; // Added description here
+  description: string;
   status?: string;
   pm?: string;
 }
@@ -21,10 +21,10 @@ interface AlertConfig {
   projectName: string;
   managerEmail: string;
   customEmails: string[];
-  alert50: number;
-  alert80: number;
-  lastAlert50?: string;
-  lastAlert80?: string;
+  lowAlert: number;
+  highAlert: number;
+  lastLowAlert?: string;
+  lastHighAlert?: string;
 }
 
 type SortKey = keyof Project | keyof AlertConfig | 'selected';
@@ -35,7 +35,7 @@ const ProjectAlerts: React.FC = () => {
   const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [showActive, setShowActive] = useState<boolean>(true);
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' }); // Default sort config
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
   const [alertConfigsState, setAlertConfigsState] = useState<AlertConfig[]>([]);
 
   useEffect(() => {
@@ -110,6 +110,18 @@ const ProjectAlerts: React.FC = () => {
     }
   };
 
+  const fetchUpdatedAlertConfigs = async () => {
+    try {
+      const alertConfigsRes = await axios.get(`/api/project-alerts`, {
+        headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY! },
+      });
+      setAlertConfigsState(alertConfigsRes.data);
+    } catch (error) {
+      console.error('Error fetching updated alert configs:', error);
+      toast.error('Error fetching updated alert configs');
+    }
+  };
+
   const toggleProjectSelection = async (projectName: string) => {
     const newSelectedProjects = new Set(selectedProjects);
     const isSelected = newSelectedProjects.has(projectName);
@@ -122,14 +134,15 @@ const ProjectAlerts: React.FC = () => {
       const alertConfig = {
         projectName,
         managerEmail: managerEmail,
-        customEmails: ['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'], // Default checked emails
-        alert50: 0.5,
-        alert80: 0.8,
+        customEmails: ['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'],
+        lowAlert: 0.5,
+        highAlert: 0.8,
       };
       newSelectedProjects.add(projectName);
       await updateAlertConfig(alertConfig);
     }
 
+    await fetchUpdatedAlertConfigs();
     setSelectedProjects(newSelectedProjects);
   };
 
@@ -162,6 +175,11 @@ const ProjectAlerts: React.FC = () => {
   };
 
   const handleAlertThresholdChange = (projectName: string, field: keyof AlertConfig, value: number) => {
+    if (!selectedProjects.has(projectName)) {
+      toast.error('You must select the project before setting an alert value.');
+      return;
+    }
+
     setAlertConfigsState(prevConfigs =>
       prevConfigs.map(config =>
         config.projectName === projectName ? { ...config, [field]: value / 100 } : config
@@ -187,7 +205,7 @@ const ProjectAlerts: React.FC = () => {
     if (key === 'selected') {
       aValue = selectedProjects.has(a.name);
       bValue = selectedProjects.has(b.name);
-    } else if (key === 'lastAlert50' || key === 'lastAlert80') {
+    } else if (key === 'lastLowAlert' || key === 'lastHighAlert') {
       const aConfig = alertConfigsState.find(config => config.projectName === a.name);
       const bConfig = alertConfigsState.find(config => config.projectName === b.name);
       aValue = aConfig ? !!aConfig[key] : false;
@@ -215,9 +233,9 @@ const ProjectAlerts: React.FC = () => {
   };
 
   const getEmailStatus = (threshold: '50' | '80', alertConfig?: AlertConfig) => {
-    if (!alertConfig) return 'Not Sent'; // Handle case where alertConfig is undefined
+    if (!alertConfig) return 'Not Sent';
 
-    const statusField = `lastAlert${threshold}` as keyof AlertConfig;
+    const statusField = `lastLowAlert${threshold}` as keyof AlertConfig;
     if (!alertConfig[statusField]) {
       return 'Not Sent';
     }
@@ -229,7 +247,7 @@ const ProjectAlerts: React.FC = () => {
       <Header pageTitle="Project Alerts" />
       <ToastContainer />
       <div className="p-4 bg-indigo-500 text-white rounded-md shadow-md mb-4 flex justify-center items-center text-center">
-        This page allows you to set notifications for projects reaching 50% and 80% completion.
+        This page allows you to set notifications for projects reaching Low and High alert Budget.
       </div>
       <div className="p-4">
         <div className="mb-4 flex flex-col md:flex-row justify-between">
@@ -260,17 +278,17 @@ const ProjectAlerts: React.FC = () => {
                   <th onClick={() => handleSort('customEmails')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
                     Custom Emails
                   </th>
-                  <th onClick={() => handleSort('lastAlert50')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Status 50%
+                  <th onClick={() => handleSort('lastLowAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                    Status Low
                   </th>
-                  <th onClick={() => handleSort('lastAlert80')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Status 80%
+                  <th onClick={() => handleSort('lastHighAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                    Status High
                   </th>
-                  <th onClick={() => handleSort('alert50')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Alert 50%
+                  <th onClick={() => handleSort('lowAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                    Low Alert
                   </th>
-                  <th onClick={() => handleSort('alert80')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Alert 80%
+                  <th onClick={() => handleSort('highAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                    High Alert
                   </th>
                 </tr>
               </thead>
@@ -300,7 +318,7 @@ const ProjectAlerts: React.FC = () => {
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{project.pm}</td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
-                          {['kostas@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
+                          {['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
                             <label key={email} className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
@@ -313,25 +331,25 @@ const ProjectAlerts: React.FC = () => {
                           ))}
                         </div>
                       </td>
-                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastAlert50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastLowAlert ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'}`}>
                         {getEmailStatus('50', alertConfig)}
                       </td>
-                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastAlert80 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastHighAlert ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
                         {getEmailStatus('80', alertConfig)}
                       </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap">
                         <input
                           type="number"
-                          value={alertConfig?.alert50 ? Math.round(alertConfig.alert50 * 100) : 0}
-                          onChange={(e) => handleAlertThresholdChange(project.name, 'alert50', Number(e.target.value))}
+                          value={alertConfig?.lowAlert ? Math.round(alertConfig.lowAlert * 100) : 0}
+                          onChange={(e) => handleAlertThresholdChange(project.name, 'lowAlert', Number(e.target.value))}
                           className="w-16 md:w-20 border border-gray-300 dark:border-gray-600 rounded-md p-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
                         />
                       </td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap">
                         <input
                           type="number"
-                          value={alertConfig?.alert80 ? Math.round(alertConfig.alert80 * 100) : 0}
-                          onChange={(e) => handleAlertThresholdChange(project.name, 'alert80', Number(e.target.value))}
+                          value={alertConfig?.highAlert ? Math.round(alertConfig.highAlert * 100) : 0}
+                          onChange={(e) => handleAlertThresholdChange(project.name, 'highAlert', Number(e.target.value))}
                           className="w-16 md:w-20 border border-gray-300 dark:border-gray-600 rounded-md p-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
                         />
                       </td>
