@@ -35,6 +35,7 @@ const Dashboard: React.FC = () => {
         }
 
         const projectsData: Project[] = await projectsRes.json();
+        console.log(projectsData); 
         setProjects(projectsData);
 
         const importLogRes = await fetch(`${baseUrl}/api/newest-import-log`, {
@@ -147,7 +148,7 @@ const Dashboard: React.FC = () => {
 
                 console.log(hrsRemain, progress, hrsUsed, progressUsed);
                 // Determine the color based on the progress
-                let bgColor = 'bg-gray-300'; // Default color (less than 70%)
+                let bgColor = 'bg-gray-300 dark:bg-gray-600'; // Default color (less than 70%)
                 if (progressUsed && progress)
 
                   if (progress < 0 || progressUsed > 85) {
@@ -159,14 +160,20 @@ const Dashboard: React.FC = () => {
                 return (
                   <button
                     key={project.name}
-                    className={`w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg ${bgColor} hover:bg-opacity-75 text-gray-900 dark:text-gray-200`}
+                    className={`w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg ${bgColor} hover:bg-opacity-75 text-gray-900 dark:text-slate-200		`}
 
                     onClick={() => handleProjectSelect(project)}
                   >
                     <div className="flex justify-between items-center">
                       <span className='flex gap-1 items-center'>
                         <span className="break-words">{project.name}</span>
-                        <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</span>
+                        <span className="break-words">
+  {project.contractType 
+    ? (project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)")
+    : ""  
+  }
+</span>
+
 
                       </span>
                       <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>
@@ -185,7 +192,7 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col items-start ">
           {/* Gray Box */}
           <div className="flex items-center justify-center gap-2">
-            <div className="w-4 h-4  bg-gray-300 rounded-md "></div>
+            <div className="w-4 h-4  bg-gray-300 dark:bg-gray-600 rounded-md "></div>
             <span className="text-center">0-70% of budget</span>
           </div>
           {/* Yellow Box */}

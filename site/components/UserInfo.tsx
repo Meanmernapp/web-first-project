@@ -1,8 +1,7 @@
-
 import React, { useEffect, useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css'; // Required CSS for Tippy
-import { FaChessKing, FaInfoCircle } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 
 interface UserInfoProps {
   username: string;
@@ -21,11 +20,10 @@ interface User {
 const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
   const [userDetails, setUserDetails] = useState<User | null>(null);
 
-
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const response = await fetch(`/api/users/${username}`, {
+        const response = await fetch(`/api/users`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
@@ -35,8 +33,8 @@ const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
           throw new Error('Failed to fetch user details');
         }
 
-        const user: User = await response.json();
-        // const user = users.find(user => user.username === username);
+        const users: User[] = await response.json();
+        const user = users.find(user => user.username === username);
 
         if (user) {
           setUserDetails(user);
