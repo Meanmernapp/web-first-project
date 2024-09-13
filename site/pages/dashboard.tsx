@@ -35,6 +35,7 @@ const Dashboard: React.FC = () => {
         }
 
         const projectsData: Project[] = await projectsRes.json();
+        console.log(projectsData)
         setProjects(projectsData);
 
         const importLogRes = await fetch(`${baseUrl}/api/newest-import-log`, {
@@ -81,6 +82,7 @@ const Dashboard: React.FC = () => {
   const handleInactiveToggle = () => {
     setShowInactive(!showInactive);
   };
+
 
   const groupProjectsByPrefix = (projects: Project[]) => {
     const sortedProjects = projects.sort((a, b) => a.name.localeCompare(b.name));
@@ -144,8 +146,6 @@ const Dashboard: React.FC = () => {
                 let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
                 let hrsUsed = project.budgetHours && project.projectTotalHours && project.projectTotalHours;
                 let progressUsed = hrsUsed && project.budgetHours && Math.round((hrsUsed / project.budgetHours) * 100);
-
-                console.log(hrsRemain, progress, hrsUsed, progressUsed);
                 // Determine the color based on the progress
                 let bgColor = 'bg-gray-300'; // Default color (less than 70%)
                 if (progressUsed && progress)
@@ -166,7 +166,7 @@ const Dashboard: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className='flex gap-1 items-center'>
                         <span className="break-words">{project.name}</span>
-                        <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}</span>
+                        <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : project.contractType === 'Fixed Price' ? "(FFP)" : null}</span>
 
                       </span>
                       <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>

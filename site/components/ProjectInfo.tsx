@@ -24,13 +24,15 @@ interface ProjectDetails {
 
 const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDescription }) => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
+  const [projectHours, setProjectsHour] = useState<number>(0);
+  const [projectFlag, setProjectFlag] = useState<boolean>(true);
 
   useEffect(() => {
     if (!projectId) return;
 
     const fetchData = async () => {
       try {
-        const response = await fetch(`/api/projects`, {
+        const response = await fetch(`/api/projects/${projectId}`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
@@ -40,10 +42,16 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
           throw new Error('Failed to fetch project info');
         }
 
-        const data: ProjectDetails[] = await response.json();
-        console.log('Fetched project info:', data);
+        const { project, projects }: { project: ProjectDetails, projects: any } = await response.json();
+        if (projects) {
+          const projectHours = projects.reduce((acc: number, project: any) => acc + (project.projectTotalHours || 0), 0);
+          console.log(projects.every((item: any) => item.budgetHours == projects[0].budgetHours))
+          setProjectFlag(projects.every((item: any) => item.budgetHours == projects[0].budgetHours)
+          )
+          setProjectsHour(projectHours);
+        }
 
-        const project = data.find(proj => proj.name === projectId);
+        // const project = data.find(proj => proj.name === projectId);
         if (project) {
           let contractType = project.contractType || "";
           if (contractType.toLowerCase() === "time and materials") {
@@ -144,9 +152,9 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
 
     return remainingMonths.length > 0 ? remainingMonths.join(", ") : "No months remaining";
   };
-
   const budgetHours = projectDetails?.budgetHours ?? 0;
-  const hrsRemain = budgetHours !== 0 ? budgetHours - totalHours : 0; // Prevent negative hrsRemain if no budget hours
+
+  const hrsRemain = budgetHours !== 0 && projectHours !== 0 ? budgetHours - projectHours : !projectHours ? budgetHours - totalHours : 0; // Prevent negative hrsRemain if no budget hours
   const remainingMonths = projectDetails ? calculateAdjustedRemainingMonths(projectDetails.periodOfPerformance.startDate, projectDetails.periodOfPerformance.endDate) : 0;
 
   let hoursRemainPerMonth = remainingMonths > 0 ? (hrsRemain / remainingMonths) : 0; // Show 0 if remainingMonths is 0 or negative
@@ -188,10 +196,10 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
               <span><b>POP:</b> {periodOfPerformanceDisplay} </span>
             </div>
             <div className="mx-2">
-              <span><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
+              <span style={{ color: !projectFlag ? 'red' : 'black' }}><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
             </div>
             <div className="mx-2">
-              <span><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} ({(((hrsRemain) / (budgetHours)) * 100).toFixed(1) + `%`}) </span>
+              <span ><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} ({(((hrsRemain) / (budgetHours)) * 100).toFixed(1) + `%`}) </span>
             </div>
             <div className="mx-2">
               <Tippy content={`Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0. Remaining months: ${remainingMonthNames}`}>

@@ -256,35 +256,35 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
 
 
               <tbody>
-  {sortedUserHours
-    .filter((user: MonthlyUserHours) =>
-      months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0) > 0
-    )
-    .map((user: MonthlyUserHours) => {
-      const userType = userDetails[user.username]?.employeeType;
-      const displayName = userType === 'Contractor' ? `${user.username} (C)` : user.username;
-      return (
-        <tr key={user.username}>
-          <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left text-gray-800 dark:text-gray-300">
-            <Link href={`/users/${user.username}`} legacyBehavior>
-              <a className="text-blue-500 hover:underline dark:text-blue-400">{displayName}</a>
-            </Link>
-          </td>
-          {months.map((month: string) => (
-            <td
-              key={month}
-              className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300"
-            >
-              {user[month] !== '-' ? Number(user[month] ?? 0).toFixed(2) : user[month]}
-            </td>
-          ))}
-          <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300">
-            {months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0).toFixed(2)}
-          </td>
-        </tr>
-      );
-    })}
-</tbody>
+                {sortedUserHours
+                  .filter((user: MonthlyUserHours) =>
+                    months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0) > 0
+                  )
+                  .map((user: MonthlyUserHours) => {
+                    const userType = userDetails[user.username]?.employeeType;
+                    const displayName = userType === 'Contractor' ? `${user.username} (C)` : user.username;
+                    return (
+                      <tr key={user.username}>
+                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left text-gray-800 dark:text-gray-300">
+                          <Link href={`/users/${user.username}`} legacyBehavior>
+                            <a className="text-blue-500 hover:underline dark:text-blue-400">{displayName}</a>
+                          </Link>
+                        </td>
+                        {months.map((month: string) => (
+                          <td
+                            key={month}
+                            className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300"
+                          >
+                            {user[month] !== '-' ? Number(user[month] ?? 0).toFixed(2) : user[month]}
+                          </td>
+                        ))}
+                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300">
+                          {months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
 
 
               <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
