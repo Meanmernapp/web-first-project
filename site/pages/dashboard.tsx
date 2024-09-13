@@ -147,7 +147,7 @@ const Dashboard: React.FC = () => {
                 let hrsUsed = project.budgetHours && project.projectTotalHours && project.projectTotalHours;
                 let progressUsed = hrsUsed && project.budgetHours && Math.round((hrsUsed / project.budgetHours) * 100);
                 // Determine the color based on the progress
-                let bgColor = 'bg-gray-300'; // Default color (less than 70%)
+                let bgColor = 'bg-gray-300 dark:bg-gray-600'; // Default color (less than 70%)
                 if (progressUsed && progress)
 
                   if (progress < 0 || progressUsed > 85) {
@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
                 return (
                   <button
                     key={project.name}
-                    className={`w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg ${bgColor} hover:bg-opacity-75 text-gray-900 dark:text-gray-200`}
+                    className={`w-full text-left p-2 border border-gray-400 dark:border-gray-700 rounded-lg ${bgColor} hover:bg-opacity-75 text-gray-900 dark:text-slate-200		`}
 
                     onClick={() => handleProjectSelect(project)}
                   >
@@ -185,7 +185,7 @@ const Dashboard: React.FC = () => {
         <div className="flex flex-col items-start ">
           {/* Gray Box */}
           <div className="flex items-center justify-center gap-2">
-            <div className="w-4 h-4  bg-gray-300 rounded-md "></div>
+            <div className="w-4 h-4  bg-gray-300 dark:bg-gray-600 rounded-md "></div>
             <span className="text-center">0-70% of budget</span>
           </div>
           {/* Yellow Box */}

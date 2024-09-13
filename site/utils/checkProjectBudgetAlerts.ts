@@ -6,10 +6,10 @@ interface AlertConfig {
   projectName: string;
   customEmails?: string[];
   managerEmail: string;
-  alert50: number;
-  alert80: number;
-  lastAlert50?: Date;
-  lastAlert80?: Date;
+  lowAlert: number;
+  highAlert: number;
+  lastLowAlert?: Date;
+  lastHighAlert?: Date;
 }
 
 interface Project {
@@ -25,7 +25,7 @@ interface Project {
 }
 
 const fetchTotalHours = async (projectName: string): Promise<number> => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'; // Ensure this is set for the server-side context
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
   const isServer = typeof window === 'undefined';
   const url = isServer
     ? `${baseUrl}/api/time-entries?projectName=${encodeURIComponent(projectName)}`
@@ -35,7 +35,7 @@ const fetchTotalHours = async (projectName: string): Promise<number> => {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '', // Ensure you have this environment variable set
+      'x-api-key': process.env.NEXT_PUBLIC_API_KEY || '',
     },
   });
 
@@ -44,17 +44,21 @@ const fetchTotalHours = async (projectName: string): Promise<number> => {
   }
 
   const data = await response.json();
-  console.log(`Fetched total hours for project ${projectName}:`, data.totalHours); // Log the response for debugging
+  console.log(`Fetched total hours for project ${projectName}:`, data.totalHours);
   return data.totalHours;
 };
-
-
 
 export const checkProjectBudgetAlerts = async () => {
   console.log('Running checkProjectBudgetAlerts...');
   const db = await connectDB();
-  const projects: WithId<Project>[] = await db.collection<Project>('projects').find({ status: 'Active' }).toArray();
-  const projectAlerts: WithId<AlertConfig>[] = await db.collection<AlertConfig>('projectAlerts').find({}).toArray();
+  const projects: WithId<Project>[] = await db
+    .collection<Project>('projects')
+    .find({ status: 'Active' })
+    .toArray();
+  const projectAlerts: WithId<AlertConfig>[] = await db
+    .collection<AlertConfig>('projectAlerts')
+    .find({})
+    .toArray();
 
   for (const project of projects) {
     const alertConfig = projectAlerts.find((alert) => alert.projectName === project.name);
@@ -62,45 +66,76 @@ export const checkProjectBudgetAlerts = async () => {
     if (alertConfig) {
       const totalHours = await fetchTotalHours(project.name);
       const budgetHours = project.budgetHours;
+      const percentageUsed = (totalHours / budgetHours) * 100;
 
-      console.log(`Project: ${project.name}, Total Hours: ${totalHours}, Budget Hours: ${budgetHours}`);
+      console.log(
+        `Project: ${project.name}, Total Hours: ${totalHours}, Budget Hours: ${budgetHours}`
+      );
+      console.log(
+        `Low Alert Threshold: ${budgetHours * alertConfig.lowAlert}, High Alert Threshold: ${
+          budgetHours * alertConfig.highAlert
+        }`
+      );
+      console.log(
+        `Last Low Alert: ${alertConfig.lastLowAlert}, Last High Alert: ${alertConfig.lastHighAlert}`
+      );
 
       let alertMessage = '';
       let updateFields: Partial<AlertConfig> = {};
 
-      if (totalHours >= budgetHours * (alertConfig.alert80 / 100)) {
-        if (!alertConfig.lastAlert80) {
-          alertMessage = `For Project: ${project.name} - ${project.description}\n`
-            + `Contract Type: ${project.contractType}\n`
-            + `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}\n`
-            + `The Actual Hours Expended on this project exceeds the budget threshold set (80%).`;
-          updateFields.lastAlert80 = new Date();
+      if (totalHours >= budgetHours * alertConfig.highAlert) {
+        if (!alertConfig.lastHighAlert) {
+          alertMessage =
+            `For Project: ${project.name} - ${project.description}\n` +
+            `Contract Type: ${project.contractType}\n` +
+            `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(
+              project.periodOfPerformance.endDate
+            ).toLocaleDateString()}\n` +
+            `The Actual Hours Expended on this project have reached ${Math.floor(
+              percentageUsed
+            )}% of the budget threshold set (${alertConfig.highAlert * 100}%).`;
+          updateFields.lastHighAlert = new Date();
+          console.log('Preparing high alert message');
         } else {
-          console.log(`80% alert already sent for project: ${project.name}`);
+          console.log(`High alert already sent for project: ${project.name}`);
         }
-      } else if (totalHours >= budgetHours * (alertConfig.alert50 / 100)) {
-        if (!alertConfig.lastAlert50) {
-          alertMessage = `For Project: ${project.name} - ${project.description}\n`
-            + `Contract Type: ${project.contractType}\n`
-            + `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}\n`
-            + `The Actual Hours Expended on this project exceeds the budget threshold set (50%).`;
-          updateFields.lastAlert50 = new Date();
+      } else if (totalHours >= budgetHours * alertConfig.lowAlert) {
+        if (!alertConfig.lastLowAlert) {
+          alertMessage =
+            `For Project: ${project.name} - ${project.description}\n` +
+            `Contract Type: ${project.contractType}\n` +
+            `POP: ${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(
+              project.periodOfPerformance.endDate
+            ).toLocaleDateString()}\n` +
+            `The Actual Hours Expended on this project have reached ${Math.floor(
+              percentageUsed
+            )}% of the budget threshold set (${alertConfig.lowAlert * 100}%).`;
+          updateFields.lastLowAlert = new Date();
+          console.log('Preparing low alert message');
         } else {
-          console.log(`50% alert already sent for project: ${project.name}`);
+          console.log(`Low alert already sent for project: ${project.name}`);
         }
       }
 
       if (alertMessage) {
         console.log(`Sending alert for project: ${project.name}`);
-        const customEmails = Array.isArray(alertConfig.customEmails) ? alertConfig.customEmails : [];
-        const recipients = [alertConfig.managerEmail, ...customEmails].filter(email => email);
+        const customEmails = Array.isArray(alertConfig.customEmails)
+          ? alertConfig.customEmails
+          : [];
+        const recipients = [alertConfig.managerEmail, ...customEmails].filter((email) => email);
+
+        // Use Math.floor to round down the percentage to the nearest whole number
+        const roundedPercentageUsed = Math.floor(percentageUsed);
+
         await sendBudgetAlertEmail(
           recipients,
           project.name,
           project.description,
           project.contractType,
-          `${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(project.periodOfPerformance.endDate).toLocaleDateString()}`,
-          totalHours >= budgetHours * (alertConfig.alert80 / 100) ? 80 : 50
+          `${new Date(project.periodOfPerformance.startDate).toLocaleDateString()} to ${new Date(
+            project.periodOfPerformance.endDate
+          ).toLocaleDateString()}`,
+          roundedPercentageUsed // Use rounded percentage here
         );
 
         await db.collection('projectAlerts').updateOne(

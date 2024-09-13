@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { checkProjectBudgetAlerts } from '../utils/checkProjectBudgetAlerts';
 
-const job = cron.schedule('30 * * * *', async () => {
+const job = cron.schedule('*/5 * * * *', async () => {
   try {
     console.log('Running scheduled task: checkProjectBudgetAlerts');
     await checkProjectBudgetAlerts();

@@ -219,7 +219,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 
 
-
         res.status(200).json(projects);
       } catch (error: any) {
         res.status(500).json({ error: 'An error occurred while fetching projects', details: error.message });

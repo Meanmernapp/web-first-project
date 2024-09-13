@@ -234,13 +234,14 @@ const ProjectAlerts: React.FC = () => {
 
   const getEmailStatus = (threshold: '50' | '80', alertConfig?: AlertConfig) => {
     if (!alertConfig) return 'Not Sent';
-
-    const statusField = `lastLowAlert${threshold}` as keyof AlertConfig;
+  
+    const statusField = threshold === '50' ? 'lastLowAlert' : 'lastHighAlert';
     if (!alertConfig[statusField]) {
       return 'Not Sent';
     }
-    return 'Sent';
+    return 'Sent'; // If the field exists, the email was sent
   };
+  
 
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
@@ -331,12 +332,16 @@ const ProjectAlerts: React.FC = () => {
                           ))}
                         </div>
                       </td>
-                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastLowAlert ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                        {getEmailStatus('50', alertConfig)}
-                      </td>
-                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${alertConfig?.lastHighAlert ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'}`}>
-                        {getEmailStatus('80', alertConfig)}
-                      </td>
+                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${
+  alertConfig?.lastLowAlert ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'
+}`}>
+  {getEmailStatus('50', alertConfig)}
+</td>
+<td className={`px-2 md:px-6 py-4 whitespace-nowrap ${
+  alertConfig?.lastHighAlert ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
+}`}>
+  {getEmailStatus('80', alertConfig)}
+</td>
                       <td className="px-2 md:px-6 py-4 whitespace-nowrap">
                         <input
                           type="number"

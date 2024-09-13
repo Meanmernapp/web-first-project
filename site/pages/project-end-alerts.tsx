@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 interface Project {
   name: string;
-  description: string;  // Added description here
+  description: string;
   status?: string;
   pm?: string; // Project manager username
   periodOfPerformance?: {
@@ -36,7 +36,7 @@ const ProjectEndAlerts: React.FC = () => {
   const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [showActive, setShowActive] = useState<boolean>(true);
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' }); // Default sort config
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'name', direction: 'ascending' });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,7 +103,6 @@ const ProjectEndAlerts: React.FC = () => {
     };
 
     try {
-      console.log('Updating alert config:', alertConfig); // Log the data being sent
       await axios.post(url, alertConfig, { headers });
       setAlertConfigs(prevConfigs =>
         prevConfigs.map(config => (config.projectName === alertConfig.projectName ? alertConfig : config))
@@ -111,11 +110,7 @@ const ProjectEndAlerts: React.FC = () => {
       toast.success(`Alerts updated for project ${alertConfig.projectName}`);
     } catch (error) {
       console.error('Error updating alerts:', error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(`Error updating alerts: ${error.response.data.message}`);
-      } else {
-        toast.error('Error updating alerts: An unknown error occurred');
-      }
+      toast.error('Error updating alerts.');
     }
   };
 
@@ -131,12 +126,8 @@ const ProjectEndAlerts: React.FC = () => {
       setAlertConfigs(prevConfigs => prevConfigs.filter(config => config.projectName !== projectName));
       toast.success(`Alerts removed for project ${projectName}`);
     } catch (error) {
-      console.error(`Error removing alerts for project ${projectName}:`, error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(`Error removing alerts: ${error.response.data.message}`);
-      } else {
-        toast.error('Error removing alerts: An unknown error occurred');
-      }
+      console.error('Error removing alerts:', error);
+      toast.error('Error removing alerts.');
     }
   };
 
@@ -149,7 +140,6 @@ const ProjectEndAlerts: React.FC = () => {
       await removeAlertConfig(projectName);
     } else {
       const projectManagerEmail = getManagerEmail(projectName, projects, users);
-
       const alertConfig = {
         projectName,
         managerEmail: projectManagerEmail,
@@ -176,13 +166,7 @@ const ProjectEndAlerts: React.FC = () => {
 
     const updatedConfig = updatedConfigs.find(config => config.projectName === projectName);
     if (updatedConfig) {
-      try {
-        console.log('Updating alert config for email change:', updatedConfig); // Log the updated config
-        await updateAlertConfig(updatedConfig);
-      } catch (error) {
-        console.error('Error updating custom emails:', error);
-        toast.error('Error updating custom emails.');
-      }
+      await updateAlertConfig(updatedConfig);
     }
   };
 
@@ -198,13 +182,7 @@ const ProjectEndAlerts: React.FC = () => {
 
     const updatedConfig = updatedConfigs.find(config => config.projectName === projectName);
     if (updatedConfig) {
-      try {
-        console.log('Updating alert config for manager email change:', updatedConfig); // Log the updated config
-        await updateAlertConfig(updatedConfig);
-      } catch (error) {
-        console.error('Error updating manager email:', error);
-        toast.error('Error updating manager email.');
-      }
+      await updateAlertConfig(updatedConfig);
     }
   };
 
@@ -246,6 +224,14 @@ const ProjectEndAlerts: React.FC = () => {
     setSortConfig({ key, direction });
   };
 
+  const projectsEndingSoon = projects.filter((project) => {
+    if (project.periodOfPerformance?.endDate) {
+      const daysRemaining = calculateDaysRemaining(project.periodOfPerformance.endDate);
+      return daysRemaining <= 30 && daysRemaining > 0;
+    }
+    return false;
+  });
+
   if (loading) {
     return <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -259,9 +245,32 @@ const ProjectEndAlerts: React.FC = () => {
       <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
         <Header pageTitle="Project End Alerts" />
         <ToastContainer />
+        
+        {/* Display projects ending in the next 30 days */}
+        {projectsEndingSoon.length > 0 && (
+    <div className="p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg mb-6">
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Projects Ending in the Next 30 Days</h2>
+    <ul>
+      {projectsEndingSoon.map((project) => (
+     <li key={project.name} className="mb-2 flex items-center">
+     <Link href={`/project/${encodeURIComponent(project.name)}`} legacyBehavior>
+       <a className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">{project.name}</a>
+     </Link>
+     <span className="ml-2 text-gray-600 dark:text-gray-300">
+       {" "} - {calculateDaysRemaining(project.periodOfPerformance?.endDate!)} days remaining
+     </span>
+   </li>
+      ))}
+    </ul>
+  </div>
+  
+       
+        )}
+
         <div className="p-4 bg-indigo-500 text-white rounded-md shadow-md mb-4 flex justify-center items-center text-center">
           This page allows you to add projects and notify Project manager Sanjay and Joema 30 days before the project ends.
         </div>
+
         <div className="mb-4 flex flex-col md:flex-row justify-between">
           <button
             onClick={() => setShowActive(!showActive)}
@@ -270,6 +279,7 @@ const ProjectEndAlerts: React.FC = () => {
             {showActive ? 'Show Inactive Projects' : 'Show Active Projects'}
           </button>
         </div>
+
         <div className="overflow-x-auto">
           <form>
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -292,7 +302,7 @@ const ProjectEndAlerts: React.FC = () => {
                   <th
                     scope="col"
                     className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort('description')}  // Added description sort
+                    onClick={() => handleSort('description')}
                   >
                     Description
                   </th>
