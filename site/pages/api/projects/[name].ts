@@ -72,7 +72,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   $or: [
                     { 'timeEntries.date': { $exists: false } }, // Include entries where date is not present
                     { 'timeEntries.date': { $eq: null } },      // Include entries where date is null
-                    { 'timeEntries.date': { $gt: new Date('2023-01-31') } },  // Filter for valid date > 2023-01-31
+                    { 'timeEntries.date': { $gt: new Date('2023-01-01') } },  // Filter for valid date > 2023-01-31
                   ],
                 },
               ],

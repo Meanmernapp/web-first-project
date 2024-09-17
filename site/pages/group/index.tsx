@@ -4,8 +4,17 @@ import { FiEdit, FiTrash2 } from 'react-icons/fi'; // Edit and Delete Icons from
 import Header from '@/components/Header';
 
 interface Project {
+    budgetHours?: any;
     _id: string;
     name: string;
+    status?: string;
+    contractType?: string;
+    periodOfPerformance?: {
+        startDate: string;
+        endDate: string;
+    };
+    description?: string;
+    pm?: string;
 }
 
 interface Group {
@@ -32,6 +41,7 @@ export default function ProjectList() {
                 });
                 if (!response.ok) throw new Error('Failed to fetch project info');
                 const data: Project[] = await response.json();
+
                 setProjects(data);
             } catch (error) {
                 console.error("Error fetching projects:", error);
@@ -62,36 +72,64 @@ export default function ProjectList() {
     // Handle selecting and deselecting projects using react-select
     const handleSelect = (selectedOptions: any) => {
         // const selectedIds = selectedOptions ? selectedOptions.map((option: any) => option.label) : [];
-
         setSelectedProjects(selectedOptions);
     };
 
     // Handle creating or updating a group
     const handleSaveGroup = async () => {
+        const selectProject = projects.filter((item) =>
+            selectedProjects.find((select: any) => select.value === item._id)
+        );
+
+        if (selectProject.length > 0) {
+            const firstBudgetHours = selectProject[0].budgetHours;
+            const firstStartDate = selectProject[0].periodOfPerformance?.startDate;
+            const firstEndDate = selectProject[0].periodOfPerformance?.endDate;
+
+            // Check if any projects have mismatched budgetHours, startDate, or endDate
+            const mismatchedProjects = selectProject.filter((item: any) => {
+                const startDate = item.periodOfPerformance?.startDate;
+                const endDate = item.periodOfPerformance?.endDate;
+
+                // Compare budgetHours, startDate, and endDate
+                return (
+                    item.budgetHours !== firstBudgetHours ||
+                    startDate !== firstStartDate ||
+                    endDate !== firstEndDate
+                );
+            });
+
+            // If any projects have different budgetHours, startDate, or endDate, show an alert
+            if (mismatchedProjects.length > 0) {
+                alert('Error: Not all projects have matching budget hours, start date, and/or end date!');
+                return;
+            }
+        }
+
         const url = isEditing ? `/api/groups/${isEditing}` : `/api/groups`;
         const method = isEditing ? 'PUT' : 'POST';
         const body = JSON.stringify({ name: groupName, projectIds: selectedProjects });
 
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
-                },
-                body,
-            });
-            if (!response.ok) throw new Error('Failed to save group');
-            alert(isEditing ? 'Group updated successfully!' : 'Group created successfully!');
-            setGroupName(''); // Reset the fields
-            setSelectedProjects([]);
-            setIsEditing(null); // Reset editing state
-            const data = await response.json(); // Fetch the new groups after creation
-            console.log(data)
-        } catch (error) {
-            console.error('Error saving group:', error);
-            alert('Failed to save group.');
-        }
+        // try {
+        //     const response = await fetch(url, {
+        //         method,
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+        //         },
+        //         body,
+        //     });
+        //     if (!response.ok) throw new Error('Failed to save group');
+        //     alert(isEditing ? 'Group updated successfully!' : 'Group created successfully!');
+        //     setGroupName(''); // Reset the fields
+        //     setSelectedProjects([]);
+        //     setIsEditing(null); // Reset editing state
+        //     const data = await response.json(); // Fetch the new groups after creation
+        //     console.log(data)
+        // } catch (error) {
+        //     console.error('Error saving group:', error);
+        //     alert('Failed to save group.');
+        // }
     };
 
     // Handle editing a group

@@ -38,6 +38,8 @@ interface LatestDates {
 }
 
 const Project: React.FC<ProjectProps> = ({ projectId }) => {
+  const [projectFlag, setProjectFlag] = useState<boolean>(true);
+  const [groupProjects, setGroupProjects] = useState<string[]>([]);
   const [userHours, setUserHours] = useState<MonthlyUserHours[]>([]);
   const [allUserHours, setAllUserHours] = useState<MonthlyUserHours[]>([]);
   const [months, setMonths] = useState<string[]>([]);
@@ -181,14 +183,29 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   };
 
   const sortedUserHours = [...userHours].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) {
+    let aValue: number | string;
+    let bValue: number | string;
+
+    // If sorting by "total", calculate the total for each user
+    if (sortConfig.key === 'total') {
+      aValue = months.reduce((total, month) => total + (a[month] !== '-' ? Number(a[month] ?? 0) : 0), 0);
+      bValue = months.reduce((total, month) => total + (b[month] !== '-' ? Number(b[month] ?? 0) : 0), 0);
+    } else {
+      // Otherwise, sort by the key (e.g., "username" or month)
+      aValue = a[sortConfig.key] ?? '';
+      bValue = b[sortConfig.key] ?? '';
+    }
+
+    // Handle numeric or string sorting
+    if (aValue < bValue) {
       return sortConfig.direction === 'asc' ? -1 : 1;
     }
-    if (a[sortConfig.key] > b[sortConfig.key]) {
+    if (aValue > bValue) {
       return sortConfig.direction === 'asc' ? 1 : -1;
     }
     return 0;
   });
+
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -209,7 +226,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
       <Header pageTitle={`Project Report ${projectId}`} description={description} />
 
       <ToastContainer />
-      <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} />
+      <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} />
 
       {sortedUserHours.length === 0 ? (
         <div className="text-gray-900 dark:text-gray-100 text-center mt-8">
@@ -224,6 +241,15 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   Data as of: {lastUpdated.createdAt}
                 </span>
               </div>
+              {groupProjects?.length > 0 &&
+                <div className="text-lg font-bold text-gray-800 dark:text-gray-100" >
+                  Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
+                  <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: !projectFlag ? 'red' : 'black' }}>
+                    (Project Hours not match)
+                  </span>
+                </div>
+              }
+
               <button
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                 onClick={() => setIsModalOpen(true)}
@@ -250,7 +276,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                       {format(parseISO(month), 'MMMM yyyy')}
                     </th>
                   ))}
-                  <th className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">Total Hours</th>
+                  <th className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer" onClick={() => requestSort('total')}>Total Hours</th>
                 </tr>
               </thead>
 
@@ -289,7 +315,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
 
               <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                 <tr>
-                  <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left">Total</th>
+                  <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left cursor-pointer">Total</th>
                   {months.map((month: string) => (
                     <th key={month} className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">
                       {(totals[month] ?? 0).toFixed(2)}
