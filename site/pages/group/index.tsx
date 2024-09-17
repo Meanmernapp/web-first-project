@@ -110,26 +110,26 @@ export default function ProjectList() {
         const method = isEditing ? 'PUT' : 'POST';
         const body = JSON.stringify({ name: groupName, projectIds: selectedProjects });
 
-        // try {
-        //     const response = await fetch(url, {
-        //         method,
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
-        //         },
-        //         body,
-        //     });
-        //     if (!response.ok) throw new Error('Failed to save group');
-        //     alert(isEditing ? 'Group updated successfully!' : 'Group created successfully!');
-        //     setGroupName(''); // Reset the fields
-        //     setSelectedProjects([]);
-        //     setIsEditing(null); // Reset editing state
-        //     const data = await response.json(); // Fetch the new groups after creation
-        //     console.log(data)
-        // } catch (error) {
-        //     console.error('Error saving group:', error);
-        //     alert('Failed to save group.');
-        // }
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+                },
+                body,
+            });
+            if (!response.ok) throw new Error('Failed to save group');
+            alert(isEditing ? 'Group updated successfully!' : 'Group created successfully!');
+            setGroupName(''); // Reset the fields
+            setSelectedProjects([]);
+            setIsEditing(null); // Reset editing state
+            const data = await response.json(); // Fetch the new groups after creation
+            console.log(data)
+        } catch (error) {
+            console.error('Error saving group:', error);
+            alert('Failed to save group.');
+        }
     };
 
     // Handle editing a group
