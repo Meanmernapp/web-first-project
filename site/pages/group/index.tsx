@@ -10,8 +10,8 @@ interface Project {
     status?: string;
     contractType?: string;
     periodOfPerformance?: {
-        startDate: string;
-        endDate: string;
+        startDate: Date;
+        endDate: Date;
     };
     description?: string;
     pm?: string;
@@ -83,19 +83,28 @@ export default function ProjectList() {
 
         if (selectProject.length > 0) {
             const firstBudgetHours = selectProject[0].budgetHours;
-            const firstStartDate = selectProject[0].periodOfPerformance?.startDate;
-            const firstEndDate = selectProject[0].periodOfPerformance?.endDate;
+            const firstStartDate = selectProject[0]?.periodOfPerformance?.startDate
+                ? new Date(selectProject[0].periodOfPerformance.startDate)
+                : null;
+            const firstEndDate = selectProject[0]?.periodOfPerformance?.endDate
+                ? new Date(selectProject[0].periodOfPerformance.endDate)
+                : null;
+
+            // Function to compare dates
+            const areDatesEqual = (date1: Date | null, date2: Date | null): boolean => {
+                return date1 && date2 ? date1.getTime() === date2.getTime() : date1 === date2;
+            };
 
             // Check if any projects have mismatched budgetHours, startDate, or endDate
             const mismatchedProjects = selectProject.filter((item: any) => {
-                const startDate = item.periodOfPerformance?.startDate;
-                const endDate = item.periodOfPerformance?.endDate;
+                const startDate = item.periodOfPerformance?.startDate ? new Date(item.periodOfPerformance.startDate) : null;
+                const endDate = item.periodOfPerformance?.endDate ? new Date(item.periodOfPerformance.endDate) : null;
 
                 // Compare budgetHours, startDate, and endDate
                 return (
                     item.budgetHours !== firstBudgetHours ||
-                    startDate !== firstStartDate ||
-                    endDate !== firstEndDate
+                    !areDatesEqual(startDate, firstStartDate) ||
+                    !areDatesEqual(endDate, firstEndDate)
                 );
             });
 
@@ -105,6 +114,7 @@ export default function ProjectList() {
                 return;
             }
         }
+
 
         const url = isEditing ? `/api/groups/${isEditing}` : `/api/groups`;
         const method = isEditing ? 'PUT' : 'POST';
@@ -224,10 +234,10 @@ export default function ProjectList() {
             <table className="w-full table-auto text-white">
                 <thead className="bg-gray-700">
                     <tr>
-                        <th className="p-3">ID</th>
-                        <th className="p-3">Group Name</th>
-                        <th className="p-3">Projects</th>
-                        <th className="p-3">Actions</th>
+                        <th className="p-3 text-left">ID</th>
+                        <th className="p-3 text-left">Group Name</th>
+                        <th className="p-3 text-left">Projects</th>
+                        <th className="p-3 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -236,7 +246,7 @@ export default function ProjectList() {
                             <td className="p-3">{group._id}</td>
                             <td className="p-3">{group.name}</td>
                             <td className="p-3">{group.projectIds.map((id: any) => projects.find((p) => p._id === id.value)?.name).join(', ')}</td>
-                            <td className="p-3 flex space-x-3">
+                            <td className="p-3 flex space-x-3 items-end justify-end">
                                 <button
                                     onClick={() => handleEditGroup(group)}
                                     className="text-yellow-500 hover:text-yellow-400"
