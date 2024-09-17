@@ -244,9 +244,11 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
               {groupProjects?.length > 0 &&
                 <div className="text-lg font-bold text-gray-800 dark:text-gray-100" >
                   Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
-                  <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: !projectFlag ? 'red' : 'black' }}>
-                    (Project Hours not match)
-                  </span>
+                  {!projectFlag && (
+                    <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: projectFlag ? 'black' : 'red' }}>
+                      (Project Hours not match)
+                    </span>
+                  )}
                 </div>
               }
 
