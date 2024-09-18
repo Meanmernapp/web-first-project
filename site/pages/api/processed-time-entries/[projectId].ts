@@ -12,6 +12,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     case 'GET':
       try {
         const entries = await db.collection('timeEntries').find({ projectName: projectId as string }).toArray();
+        const project = await db.collection('projects').findOne({ name: projectId as string })
         if (!entries || entries.length === 0) {
           return res.status(404).json({ error: 'No time entries found for this project' });
         }
@@ -57,7 +58,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
         });
 
-        res.status(200).json({ userHours: formattedUserHours, months: monthsArray, totals });
+        res.status(200).json({ userHours: formattedUserHours, months: monthsArray, totals, project });
       } catch (error: any) {
         res.status(500).json({ error: 'An error occurred while fetching time entries', details: error.message });
       }

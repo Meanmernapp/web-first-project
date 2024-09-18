@@ -11,9 +11,9 @@ import MonthlyPieChart from '../../components/MonthlyPieChart';
 import MonthlyBarChart from '../../components/MonthlyBarChart';
 import MonthlyPieChartParticipation from '../../components/MonthlyPieChartParticipation';
 import axios from 'axios';
-import { parseISO, isValid, format, isWithinInterval } from 'date-fns';
+import { parseISO, isValid, format, isWithinInterval, isBefore, isAfter } from 'date-fns';
 import { GetServerSideProps, GetServerSidePropsContext } from 'next';
-
+import * as Switch from '@radix-ui/react-switch';
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface MonthlyUserHours {
@@ -28,6 +28,19 @@ interface User {
   createdAt: string;
   updatedAt: string;
 }
+interface ProjectDetails {
+  name: string;
+  status: string;
+  contractType: string;
+  periodOfPerformance: {
+    startDate: Date;
+    endDate: Date;
+  };
+  budgetHours: number;
+  description: string;
+  pm: string;
+  showHrs?: boolean;
+}
 
 interface ProjectProps {
   projectId: string;
@@ -39,12 +52,14 @@ interface LatestDates {
 
 const Project: React.FC<ProjectProps> = ({ projectId }) => {
   const [projectFlag, setProjectFlag] = useState<boolean>(true);
+  const [showHrs, setShowHrs] = useState<boolean>(false);
   const [groupProjects, setGroupProjects] = useState<string[]>([]);
   const [userHours, setUserHours] = useState<MonthlyUserHours[]>([]);
   const [allUserHours, setAllUserHours] = useState<MonthlyUserHours[]>([]);
   const [months, setMonths] = useState<string[]>([]);
   const [allMonths, setAllMonths] = useState<string[]>([]);
   const [totals, setTotals] = useState<{ [month: string]: number }>({});
+  const [project, setProject] = useState<ProjectDetails>({} as ProjectDetails);
   const [allTotals, setAllTotals] = useState<{ [month: string]: number }>({});
   const [error, setError] = useState<string | null>(null);
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'username', direction: 'asc' });
@@ -93,13 +108,40 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
       ]);
 
 
-      const { userHours, months } = entriesResponse.data;
+      const { userHours, months, project } = entriesResponse.data;
       const users: User[] = usersResponse.data;
+      setShowHrs(project.showHrs)
+      setProject(project)
+
+      const startDate = project?.periodOfPerformance?.startDate
+        ? parseISO(project.periodOfPerformance.startDate)
+        : null;
+
+      const endDate = project?.periodOfPerformance?.endDate
+        ? parseISO(project.periodOfPerformance.endDate)
+        : null;
 
       const validMonths = months.filter((month: string) => {
         const date = parseISO(month);
+
+        // Ensure the date is valid
+        if (!isValid(date)) return false;
+
+        // Filter based on the periodOfPerformance
+        if (startDate && endDate && project.showHrs) {
+          // Ensure the date is between startDate and endDate, inclusive
+          return (
+            isAfter(date, startDate) || date.getTime() === startDate.getTime()
+          ) && (
+              isBefore(date, endDate) || date.getTime() === endDate.getTime()
+            );
+        }
+
+        // Default filter if showHrs is false or dates are missing
         return isValid(date) && date.getFullYear() > 1970;
       });
+
+
 
       const filteredUserHours = userHours.map((user: MonthlyUserHours) => {
         const filteredUser: MonthlyUserHours = { username: user.username };
@@ -118,7 +160,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
         }
       });
       const recentEntryDate = recentEntryResponse.data;
-  
+
       // Format the recent entry date using toLocaleDateString
       const formattedDate = new Date(recentEntryDate).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -126,7 +168,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
         day: 'numeric',
         timeZone: 'UTC',  // Ensures the date is interpreted in UTC
       });
-  
+
       // Set the lastUpdated field based on the recent time entry
       setLastUpdated({ createdAt: formattedDate, updatedAt: formattedDate });
 
@@ -221,13 +263,30 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   }
 
   const totalHours = Object.values(totals).reduce((total, monthTotal) => total + monthTotal, 0);
+  const handleHrs = async (checked: boolean) => {
+    setShowHrs(checked)
+    const response = await axios.put("/api/projects/" + projectId, {
+      "showHrs": checked
+    }, {
+      headers: {
+        'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+      },
+    })
+    if (checked) {
+      applyFilter(project.periodOfPerformance.startDate, project.periodOfPerformance.endDate, allUserHours, allMonths, allTotals);
 
+    } else {
+      applyFilter(dateRange[0].startDate!, dateRange[0].endDate!, allUserHours, allMonths, allTotals);
+
+    }
+
+  }
   return (
     <div className="p-4 w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
       <Header pageTitle={`Project Report ${projectId}`} description={description} />
 
       <ToastContainer />
-      <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} />
+      <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} checked={showHrs} />
 
       {sortedUserHours.length === 0 ? (
         <div className="text-gray-900 dark:text-gray-100 text-center mt-8">
@@ -244,7 +303,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
               </div>
               {groupProjects?.length > 0 &&
                 <div className="text-lg font-bold text-gray-800 dark:text-gray-100" >
-                 Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
+                  Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
                   {!projectFlag && (
                     <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: projectFlag ? 'black' : 'red' }}>
                       (Project Hours not match)
@@ -252,13 +311,24 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   )}
                 </div>
               }
+              <div className='flex items-center gap-2'>
 
-              <button
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => setIsModalOpen(true)}
-              >
-                Select Date Range
-              </button>
+                <Switch.Root
+                  className="w-[42px] h-[25px] bg-blackA6 rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black data-[state=unchecked]:bg-[#3b82f6] outline-none cursor-pointer"
+                  id="airplane-mode"
+                  checked={showHrs}
+                  onCheckedChange={handleHrs}
+                >
+                  <Switch.Thumb className="block w-[21px] h-[21px] bg-white rounded-full shadow-[0_2px_2px] shadow-blackA4 transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[19px]" />
+                </Switch.Root>
+
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Select Date Range
+                </button>
+              </div>
             </div>
 
             <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">

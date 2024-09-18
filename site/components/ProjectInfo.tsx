@@ -4,6 +4,7 @@ import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 
 interface ProjectInfoProps {
+  checked: boolean;
   projectId: string;
   totalHours: number;
   setDescription: (description: string) => void;
@@ -23,16 +24,16 @@ interface ProjectDetails {
   budgetHours: number;
   description: string;
   pm: string;
+  showHrs?: boolean;
 }
 
-const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDescription, setProjectFlag, setGroupProjects }) => {
+const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDescription, setProjectFlag, setGroupProjects, checked }) => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   const [projectHours, setProjectsHour] = useState<number>(0);
 
 
   useEffect(() => {
     if (!projectId) return;
-
     const fetchData = async () => {
       try {
         const response = await fetch(`/api/projects/${projectId}`, {
@@ -105,7 +106,8 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
     };
 
     fetchData();
-  }, [projectId, setDescription]);
+
+  }, [projectId, setDescription, checked]);
 
   const calculateRemainingMonths = (startDate: string, endDate: string) => {
     if (!endDate || endDate === "N/A") return 0;  // Check for missing end date
