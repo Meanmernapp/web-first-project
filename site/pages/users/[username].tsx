@@ -93,21 +93,44 @@ const UserPage: React.FC = () => {
 
     const fetchTimeEntries = async () => {
       try {
-        const entriesResponse = await axios.get(`${baseUrl}/api/user-time-entries/${encodeURIComponent(username)}`, {
-          headers: {
-            'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
-          },
+        // Fetch user time entries and recent time entry in parallel
+        const [entriesResponse, recentEntryResponse] = await Promise.all([
+          axios.get(`${baseUrl}/api/user-time-entries/${encodeURIComponent(username)}`, {
+            headers: {
+              'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+            },
+          }),
+          axios.get(`${baseUrl}/api/getRecentTimeEntry`, {
+            headers: {
+              'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
+            },
+          }),
+        ]);
+    
+        // Destructure the responses
+        const { userProjects, months } = entriesResponse.data;
+    
+        // Get the recent entry date from the response
+        const recentEntryDate = recentEntryResponse.data;
+    
+        // Format the recent entry date using toLocaleDateString
+        const formattedRecentDate = new Date(recentEntryDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          timeZone: 'UTC',  // Ensures the date is interpreted in UTC
         });
-
-        const { userProjects, months, latestUpdate } = entriesResponse.data;
-
-        setLastUpdated(latestUpdate);
-        console.log(latestUpdate)
+    
+        // Set the "Data as of" field
+        setLastUpdated({ createdAt: formattedRecentDate, updatedAt: formattedRecentDate });
+    
+        // Filter valid months (from 1970 onwards)
         let validMonths = months.filter((month: string) => {
           const date = parseISO(month);
           return isValid(date) && date.getFullYear() > 1970;
         });
-
+    
+        // Handle filtering by start and end date or by a specific year (e.g., 2024)
         if (startDate && endDate) {
           const start = parseISO(startDate);
           const end = parseISO(endDate);
@@ -115,65 +138,55 @@ const UserPage: React.FC = () => {
             const date = parseISO(month);
             return isWithinInterval(date, { start, end });
           });
-
-          setDateRange([
-            {
-              startDate: start,
-              endDate: end,
-              key: 'selection',
-            },
-          ]);
+          setDateRange([{ startDate: start, endDate: end, key: 'selection' }]);
         } else if (filter === '2024') {
           validMonths = validMonths.filter((month: string) => {
             const date = parseISO(month);
             return isValid(date) && date.getFullYear() === 2024;
           });
-
-          setDateRange([
-            {
-              startDate: startOfYear(new Date('2024-01-01')),
-              endDate: endOfYear(new Date('2024-12-31')),
-              key: 'selection',
-            },
-          ]);
+          setDateRange([{ startDate: startOfYear(new Date('2024-01-01')), endDate: endOfYear(new Date('2024-12-31')), key: 'selection' }]);
         }
-
-        const filteredUserProjects = userProjects.map((project: MonthlyUserHours) => {
-          // Include contractType explicitly in the new object
-          const filteredProject: MonthlyUserHours = {
-            projectName: project.projectName,
-            contractType: project.contractType, // Ensure contractType is copied over
-          };
-          validMonths.forEach((month: string) => {
-            if (project[month] !== undefined) {
-              filteredProject[month] = project[month];
-            }
+    
+        // Filter user projects based on valid months
+        const filteredUserProjects = userProjects
+          .map((project: MonthlyUserHours) => {
+            const filteredProject: MonthlyUserHours = {
+              projectName: project.projectName,
+              contractType: project.contractType,
+            };
+            validMonths.forEach((month: string) => {
+              if (project[month] !== undefined) {
+                filteredProject[month] = project[month];
+              }
+            });
+            return filteredProject;
+          })
+          .filter((project: MonthlyUserHours) => {
+            return validMonths.some((month: string) => project[month] !== undefined && project[month] !== 0 && project[month] !== '-');
           });
-          return filteredProject;
-        }).filter((project: MonthlyUserHours) => {
-          return validMonths.some((month: string) => project[month] !== undefined && project[month] !== 0 && project[month] !== '-');
-        });
-
-
+    
+        // If no valid projects, reset the state and return
         if (filteredUserProjects.length === 0) {
-          setError(null);  // Reset the error since no data is different from a fetch error
+          setError(null); // Reset the error since no data is different from a fetch error
           setLoading(false);
           setUserProjects([]);
           setMonths(validMonths);
           return;
         }
-
+    
+        // Calculate totals for each month
         const filteredTotals: Totals = {};
         validMonths.forEach((month: string) => {
           if (entriesResponse.data.totals[month] !== undefined) {
             filteredTotals[month] = entriesResponse.data.totals[month];
           }
         });
-
+    
+        // Calculate monthly utilization for each valid month
         const calculateMonthlyUtilization = (month: string): number => {
           let webFirstMonthHours = 0;
           let totalMonthHours = 0;
-
+    
           filteredUserProjects.forEach((project: MonthlyUserHours) => {
             if (project[month] !== undefined && project[month] !== '-') {
               const hours = Number(project[month]);
@@ -183,17 +196,17 @@ const UserPage: React.FC = () => {
               }
             }
           });
-
-          return totalMonthHours > 0
-            ? ((totalMonthHours - webFirstMonthHours) / totalMonthHours) * 100
-            : 0;
+    
+          return totalMonthHours > 0 ? ((totalMonthHours - webFirstMonthHours) / totalMonthHours) * 100 : 0;
         };
-
+    
+        // Calculate utilization for each valid month
         const filteredUtilizations: Utilizations = {};
         validMonths.forEach((month: string) => {
           filteredUtilizations[month] = calculateMonthlyUtilization(month);
         });
-
+    
+        // Update the state with the fetched data
         setAllUserProjects(filteredUserProjects);
         setAllMonths(validMonths);
         setAllTotals(filteredTotals);
@@ -202,12 +215,12 @@ const UserPage: React.FC = () => {
         setTotals(filteredTotals);
         setUtilizations(filteredUtilizations);
         setLoading(false);
-
-        // Calculate overall utilization
+    
+        // Calculate the total utilization
         const totalUtilization = (() => {
           let totalHours = 0;
           let totalWebFirstHours = 0;
-
+    
           validMonths.forEach((month: string) => {
             totalHours += filteredTotals[month] ?? 0;
             filteredUserProjects.forEach((project: MonthlyUserHours) => {
@@ -216,19 +229,20 @@ const UserPage: React.FC = () => {
               }
             });
           });
-
-          return totalHours > 0
-            ? ((totalHours - totalWebFirstHours) / totalHours) * 100
-            : 0;
+    
+          return totalHours > 0 ? ((totalHours - totalWebFirstHours) / totalHours) * 100 : 0;
         })();
-
+    
+        // Set the total utilization
         setTotalUtilization(totalUtilization);
-
+    
       } catch (error) {
         setError('Failed to fetch time entries.');
         setLoading(false);
       }
     };
+    
+    
 
     if (username) {
       fetchUserData();

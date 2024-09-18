@@ -29,35 +29,46 @@ const Dashboard: React.FC = () => {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
-
+  
         if (!projectsRes.ok) {
           throw new Error(`Failed to fetch projects: ${projectsRes.statusText}`);
         }
-
+  
         const projectsData: Project[] = await projectsRes.json();
-        console.log(projectsData)
+        console.log(projectsData); 
         setProjects(projectsData);
-
-        const importLogRes = await fetch(`${baseUrl}/api/newest-import-log`, {
+  
+        // New API call to get the most recent date from timeEntries
+        const recentDateRes = await fetch(`${baseUrl}/api/getRecentTimeEntry`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
-
-        if (!importLogRes.ok) {
-          throw new Error(`Failed to fetch import log: ${importLogRes.statusText}`);
+  
+        if (!recentDateRes.ok) {
+          throw new Error(`Failed to fetch recent date: ${recentDateRes.statusText}`);
         }
-
-        const importLogData = await importLogRes.json();
-        setLastUpdated(importLogData.lastUpdated || 'Date not available');
+  
+        const recentDate = await recentDateRes.json();
+  
+        // Format the date using toLocaleDateString to MM/DD/YYYY
+        const formattedDate = new Date(recentDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+          timeZone: 'UTC',  // Ensures the date is interpreted in UTC
+        });
+  
+        setLastUpdated(formattedDate || 'Date not available');
       } catch (error) {
         console.error('Error fetching data:', error);
         setError((error as Error).message);
       }
     };
-
+  
     fetchProjects();
   }, [baseUrl]);
+  
 
   useEffect(() => {
     const updatedProjects = projects.map(project => ({
@@ -82,7 +93,6 @@ const Dashboard: React.FC = () => {
   const handleInactiveToggle = () => {
     setShowInactive(!showInactive);
   };
-
 
   const groupProjectsByPrefix = (projects: Project[]) => {
     const sortedProjects = projects.sort((a, b) => a.name.localeCompare(b.name));
@@ -146,6 +156,8 @@ const Dashboard: React.FC = () => {
                 let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
                 let hrsUsed = project.budgetHours && project.projectTotalHours && project.projectTotalHours;
                 let progressUsed = hrsUsed && project.budgetHours && Math.round((hrsUsed / project.budgetHours) * 100);
+
+                console.log(hrsRemain, progress, hrsUsed, progressUsed);
                 // Determine the color based on the progress
                 let bgColor = 'bg-gray-300 dark:bg-gray-600'; // Default color (less than 70%)
                 if (progressUsed && progress)
@@ -166,7 +178,13 @@ const Dashboard: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <span className='flex gap-1 items-center'>
                         <span className="break-words">{project.name}</span>
-                        <span className="break-words">{project.contractType === 'Time and Materials' ? "(T&M)" : project.contractType === 'Fixed Price' ? "(FFP)" : null}</span>
+                        <span className="break-words">
+  {project.contractType 
+    ? (project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)")
+    : ""  
+  }
+</span>
+
 
                       </span>
                       <span className={`text-sm ${project.status === 'Active' ? 'text-green-500' : 'text-red-500'}`}>

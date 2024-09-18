@@ -227,7 +227,7 @@ const ProjectEndAlerts: React.FC = () => {
   const projectsEndingSoon = projects.filter((project) => {
     if (project.periodOfPerformance?.endDate) {
       const daysRemaining = calculateDaysRemaining(project.periodOfPerformance.endDate);
-      return daysRemaining <= 30 && daysRemaining > 0;
+      return daysRemaining <= 37 && daysRemaining > 0;
     }
     return false;
   });
@@ -246,10 +246,10 @@ const ProjectEndAlerts: React.FC = () => {
         <Header pageTitle="Project End Alerts" />
         <ToastContainer />
         
-        {/* Display projects ending in the next 30 days */}
+        {/* Display projects ending in the next 37 days */}
         {projectsEndingSoon.length > 0 && (
     <div className="p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg mb-6">
-    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Projects Ending in the Next 30 Days</h2>
+    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-3">Projects Ending in the Next 37 Days</h2>
     <ul>
       {projectsEndingSoon.map((project) => (
      <li key={project.name} className="mb-2 flex items-center">

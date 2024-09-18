@@ -4,17 +4,8 @@ import { FiEdit, FiTrash2 } from 'react-icons/fi'; // Edit and Delete Icons from
 import Header from '@/components/Header';
 
 interface Project {
-    budgetHours?: any;
     _id: string;
     name: string;
-    status?: string;
-    contractType?: string;
-    periodOfPerformance?: {
-        startDate: Date;
-        endDate: Date;
-    };
-    description?: string;
-    pm?: string;
 }
 
 interface Group {
@@ -41,7 +32,6 @@ export default function ProjectList() {
                 });
                 if (!response.ok) throw new Error('Failed to fetch project info');
                 const data: Project[] = await response.json();
-
                 setProjects(data);
             } catch (error) {
                 console.error("Error fetching projects:", error);
@@ -72,50 +62,12 @@ export default function ProjectList() {
     // Handle selecting and deselecting projects using react-select
     const handleSelect = (selectedOptions: any) => {
         // const selectedIds = selectedOptions ? selectedOptions.map((option: any) => option.label) : [];
+
         setSelectedProjects(selectedOptions);
     };
 
     // Handle creating or updating a group
     const handleSaveGroup = async () => {
-        const selectProject = projects.filter((item) =>
-            selectedProjects.find((select: any) => select.value === item._id)
-        );
-
-        if (selectProject.length > 0) {
-            const firstBudgetHours = selectProject[0].budgetHours;
-            const firstStartDate = selectProject[0]?.periodOfPerformance?.startDate
-                ? new Date(selectProject[0].periodOfPerformance.startDate)
-                : null;
-            const firstEndDate = selectProject[0]?.periodOfPerformance?.endDate
-                ? new Date(selectProject[0].periodOfPerformance.endDate)
-                : null;
-
-            // Function to compare dates
-            const areDatesEqual = (date1: Date | null, date2: Date | null): boolean => {
-                return date1 && date2 ? date1.getTime() === date2.getTime() : date1 === date2;
-            };
-
-            // Check if any projects have mismatched budgetHours, startDate, or endDate
-            const mismatchedProjects = selectProject.filter((item: any) => {
-                const startDate = item.periodOfPerformance?.startDate ? new Date(item.periodOfPerformance.startDate) : null;
-                const endDate = item.periodOfPerformance?.endDate ? new Date(item.periodOfPerformance.endDate) : null;
-
-                // Compare budgetHours, startDate, and endDate
-                return (
-                    item.budgetHours !== firstBudgetHours ||
-                    !areDatesEqual(startDate, firstStartDate) ||
-                    !areDatesEqual(endDate, firstEndDate)
-                );
-            });
-
-            // If any projects have different budgetHours, startDate, or endDate, show an alert
-            if (mismatchedProjects.length > 0) {
-                alert('Error: Not all projects have matching budget hours, start date, and/or end date!');
-                return;
-            }
-        }
-
-
         const url = isEditing ? `/api/groups/${isEditing}` : `/api/groups`;
         const method = isEditing ? 'PUT' : 'POST';
         const body = JSON.stringify({ name: groupName, projectIds: selectedProjects });
@@ -234,10 +186,10 @@ export default function ProjectList() {
             <table className="w-full table-auto text-white">
                 <thead className="bg-gray-700">
                     <tr>
-                        <th className="p-3 text-left">ID</th>
-                        <th className="p-3 text-left">Group Name</th>
-                        <th className="p-3 text-left">Projects</th>
-                        <th className="p-3 text-right">Actions</th>
+                        <th className="p-3">ID</th>
+                        <th className="p-3">Group Name</th>
+                        <th className="p-3">Projects</th>
+                        <th className="p-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -246,7 +198,7 @@ export default function ProjectList() {
                             <td className="p-3">{group._id}</td>
                             <td className="p-3">{group.name}</td>
                             <td className="p-3">{group.projectIds.map((id: any) => projects.find((p) => p._id === id.value)?.name).join(', ')}</td>
-                            <td className="p-3 flex space-x-3 items-end justify-end">
+                            <td className="p-3 flex space-x-3">
                                 <button
                                     onClick={() => handleEditGroup(group)}
                                     className="text-yellow-500 hover:text-yellow-400"
