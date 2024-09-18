@@ -20,10 +20,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         .sort({ date: -1 })
         .limit(1)
         .toArray();
-      
-      
-      
-
+          
         if (mostRecentEntry.length === 0) {
           return res.status(404).json({ message: 'No time entries found' });
         }

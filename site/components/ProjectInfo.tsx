@@ -7,6 +7,9 @@ interface ProjectInfoProps {
   projectId: string;
   totalHours: number;
   setDescription: (description: string) => void;
+  setProjectFlag: (projectFlag: boolean) => void;
+  setGroupProjects: (groupProjects: string[]) => void;
+
 }
 
 interface ProjectDetails {
@@ -22,10 +25,10 @@ interface ProjectDetails {
   pm: string;
 }
 
-const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDescription }) => {
+const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDescription, setProjectFlag, setGroupProjects }) => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   const [projectHours, setProjectsHour] = useState<number>(0);
-  const [projectFlag, setProjectFlag] = useState<boolean>(true);
+
 
   useEffect(() => {
     if (!projectId) return;
@@ -45,9 +48,10 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
         const { project, projects }: { project: ProjectDetails, projects: any } = await response.json();
         if (projects) {
           const projectHours = projects.reduce((acc: number, project: any) => acc + (project.projectTotalHours || 0), 0);
-          console.log(projects.every((item: any) => item.budgetHours == projects[0].budgetHours))
+          console.log(projects.map((item: any) => item.name))
           setProjectFlag(projects.every((item: any) => item.budgetHours == projects[0].budgetHours)
           )
+          setGroupProjects(projects.map((item: any) => item.name))
           setProjectsHour(projectHours);
         }
 
@@ -196,7 +200,7 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
               <span><b>POP:</b> {periodOfPerformanceDisplay} </span>
             </div>
             <div className="mx-2">
-              <span style={{ color: !projectFlag ? 'red' : 'black' }}><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
+              <span><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
             </div>
             <div className="mx-2">
               <span ><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} ({(((hrsRemain) / (budgetHours)) * 100).toFixed(1) + `%`}) </span>
