@@ -29,28 +29,28 @@ const Dashboard: React.FC = () => {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
-  
+
         if (!projectsRes.ok) {
           throw new Error(`Failed to fetch projects: ${projectsRes.statusText}`);
         }
-  
+
         const projectsData: Project[] = await projectsRes.json();
-        console.log(projectsData); 
+        console.log(projectsData);
         setProjects(projectsData);
-  
+
         // New API call to get the most recent date from timeEntries
         const recentDateRes = await fetch(`${baseUrl}/api/getRecentTimeEntry`, {
           headers: {
             'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
           },
         });
-  
+
         if (!recentDateRes.ok) {
           throw new Error(`Failed to fetch recent date: ${recentDateRes.statusText}`);
         }
-  
+
         const recentDate = await recentDateRes.json();
-  
+
         // Format the date using toLocaleDateString to MM/DD/YYYY
         const formattedDate = new Date(recentDate).toLocaleDateString('en-US', {
           year: 'numeric',
@@ -58,17 +58,17 @@ const Dashboard: React.FC = () => {
           day: 'numeric',
           timeZone: 'UTC',  // Ensures the date is interpreted in UTC
         });
-  
+
         setLastUpdated(formattedDate || 'Date not available');
       } catch (error) {
         console.error('Error fetching data:', error);
         setError((error as Error).message);
       }
     };
-  
+
     fetchProjects();
   }, [baseUrl]);
-  
+
 
   useEffect(() => {
     const updatedProjects = projects.map(project => ({
@@ -179,11 +179,11 @@ const Dashboard: React.FC = () => {
                       <span className='flex gap-1 items-center'>
                         <span className="break-words">{project.name}</span>
                         <span className="break-words">
-  {project.contractType 
-    ? (project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)")
-    : ""  
-  }
-</span>
+                          {project.contractType
+                            ? (project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)")
+                            : ""
+                          }
+                        </span>
 
 
                       </span>

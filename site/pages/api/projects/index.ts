@@ -24,16 +24,37 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           {
             $unwind: {
               path: '$timeEntries',
-              preserveNullAndEmptyArrays: true // Allow projects with no time entries or null time entries
-            }
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $addFields: {
+              showHrs: { $ifNull: ['$showHrs', false] },
+              timeEntriesDateFilter: {
+                $cond: {
+                  if: { $eq: ['$showHrs', true] },
+                  then: {
+                    $and: [
+                      { $gte: ['$timeEntries.date', '$periodOfPerformance.startDate'] },
+                      { $lte: ['$timeEntries.date', '$periodOfPerformance.endDate'] },
+                    ],
+                  },
+                  else: {
+                    $or: [
+                      { $lte: ['$timeEntries.date', new Date('2023-01-01')] }, // Date <= 2023-01-01
+                      { $eq: ['$timeEntries.date', null] }, // Date is null
+                      { $gt: ['$timeEntries.date', new Date('2023-01-31')] }
+                    ],
+                  },
+                },
+              },
+            },
           },
           {
             $match: {
-              $or: [
-                { 'timeEntries.date': { $exists: false } }, // Include entries where date is not present
-                { 'timeEntries.date': { $eq: null } },      // Include entries where date is null
-                { 'timeEntries.date': { $gt: new Date('2023-01-01') } },  // Filter for valid date > 2023-01-31
-              ],
+              $expr: {
+                $eq: ['$timeEntriesDateFilter', true],
+              },
             },
           },
           {
@@ -56,8 +77,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                   $cond: {
                     if: { $or: [{ $eq: ['$timeEntries.date', null] }, { $eq: ['$timeEntries.date', NaN] }] },
                     then: null,
-                    else: { $dateToString: { format: "%Y-%m", date: "$timeEntries.date" } }
-                  }
+                    else: { $dateToString: { format: "%Y-%m", date: "$timeEntries.date" } },
+                  },
                 },
               },
               totalHours: { $sum: '$timeEntries.hours' },
@@ -102,7 +123,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             $project: {
               _id: 1,
               name: 1,
-              users: 1,
+              // users: 1,
               projectTotalHours: 1,
               budgetHours: 1,
               contractType: 1,
@@ -116,105 +137,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               updatedAt: 1,
             },
           },
+
+
         ]).toArray();
 
-
-        // const projects = await collection.aggregate([
-        //   {
-        //     $lookup: {
-        //       from: 'timeEntries',
-        //       localField: 'name',
-        //       foreignField: 'projectName',
-        //       as: 'timeEntries',
-        //     },
-        //   },
-        //   {
-        //     $unwind: {
-        //       path: '$timeEntries',
-        //       preserveNullAndEmptyArrays: true // Allow projects with no time entries or null time entries
-        //     }
-        //   },
-        //   {
-        //     $addFields: {
-        //       'timeEntries.hours': {
-        //         $cond: {
-        //           if: { $or: [{ $eq: ['$timeEntries.hours', NaN] }, { $eq: ['$timeEntries.hours', null] }] },
-        //           then: 0,
-        //           else: '$timeEntries.hours',
-        //         },
-        //       },
-        //     },
-        //   },
-        //   {
-        //     $group: {
-        //       _id: {
-        //         projectName: '$name',
-        //         username: '$timeEntries.username',
-        //         month: {
-        //           $cond: {
-        //             if: { $or: [{ $eq: ['$timeEntries.date', null] }, { $eq: ['$timeEntries.date', NaN] }] },
-        //             then: null,
-        //             else: { $dateToString: { format: "%Y-%m", date: "$timeEntries.date" } }
-        //           }
-        //         },
-        //       },
-        //       totalHours: { $sum: '$timeEntries.hours' },
-        //       projectDetails: { $first: '$$ROOT' },
-        //     },
-        //   },
-        //   {
-        //     $group: {
-        //       _id: {
-        //         projectName: '$_id.projectName',
-        //         username: '$_id.username',
-        //       },
-        //       userTotalHours: { $sum: '$totalHours' },
-        //       projectDetails: { $first: '$projectDetails' },
-        //     },
-        //   },
-        //   {
-        //     $group: {
-        //       _id: '$_id.projectName',
-        //       users: {
-        //         $push: {
-        //           username: '$_id.username',
-        //           userTotalHours: '$userTotalHours',
-        //         },
-        //       },
-        //       projectTotalHours: { $sum: '$userTotalHours' },
-        //       projectDetails: { $first: '$projectDetails' },
-        //     },
-        //   },
-        //   {
-        //     $addFields: {
-        //       'projectDetails.users': '$users',
-        //       'projectDetails.projectTotalHours': '$projectTotalHours',
-        //     },
-        //   },
-        //   {
-        //     $replaceRoot: {
-        //       newRoot: '$projectDetails',
-        //     },
-        //   },
-        //   {
-        //     $project: {
-        //       _id: 1,
-        //       name: 1,
-        //       users: 1,
-        //       projectTotalHours: 1,
-        //       budgetHours: 1,
-        //       contractType: 1,
-        //       createdAt: 1,
-        //       description: 1,
-        //       periodOfPerformance: 1,
-        //       endDate: 1,
-        //       startDate: 1,
-        //       pm: 1,
-        //       status: 1,
-        //       updatedAt: 1,
-        //     },
-        //   }
-        // ]).toArray();
 
 
 
