@@ -20,6 +20,10 @@ interface MonthlyUserHours {
   username: string;
   [month: string]: number | string;
 }
+interface SwitchWithLabelsProps {
+  showHrs: boolean; // This will be a boolean
+  handleHrs: (checked: boolean) => void; // This is a function that takes a boolean and returns void
+}
 
 interface User {
   username: string;
@@ -107,7 +111,6 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
         })
       ]);
 
-
       const { userHours, months, project } = entriesResponse.data;
       const users: User[] = usersResponse.data;
       setShowHrs(project.showHrs)
@@ -124,12 +127,9 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
       const validMonths = months.filter((month: string) => {
         const date = parseISO(month);
 
-        // Ensure the date is valid
         if (!isValid(date)) return false;
 
-        // Filter based on the periodOfPerformance
         if (startDate && endDate && project.showHrs) {
-          // Ensure the date is between startDate and endDate, inclusive
           return (
             isAfter(date, startDate) || date.getTime() === startDate.getTime()
           ) && (
@@ -137,11 +137,8 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
             );
         }
 
-        // Default filter if showHrs is false or dates are missing
         return isValid(date) && date.getFullYear() > 1970;
       });
-
-
 
       const filteredUserHours = userHours.map((user: MonthlyUserHours) => {
         const filteredUser: MonthlyUserHours = { username: user.username };
@@ -161,22 +158,19 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
       });
       const recentEntryDate = recentEntryResponse.data;
 
-      // Format the recent entry date using toLocaleDateString
       const formattedDate = new Date(recentEntryDate).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'numeric',
         day: 'numeric',
-        timeZone: 'UTC',  // Ensures the date is interpreted in UTC
+        timeZone: 'UTC',
       });
 
-      // Set the lastUpdated field based on the recent time entry
       setLastUpdated({ createdAt: formattedDate, updatedAt: formattedDate });
 
       const userDetailsMap: { [key: string]: User } = {};
       users.forEach(user => {
         userDetailsMap[user.username] = user;
       });
-
 
       setAllUserHours(filteredUserHours);
       setAllMonths(validMonths);
@@ -229,17 +223,14 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
     let aValue: number | string;
     let bValue: number | string;
 
-    // If sorting by "total", calculate the total for each user
     if (sortConfig.key === 'total') {
       aValue = months.reduce((total, month) => total + (a[month] !== '-' ? Number(a[month] ?? 0) : 0), 0);
       bValue = months.reduce((total, month) => total + (b[month] !== '-' ? Number(b[month] ?? 0) : 0), 0);
     } else {
-      // Otherwise, sort by the key (e.g., "username" or month)
       aValue = a[sortConfig.key] ?? '';
       bValue = b[sortConfig.key] ?? '';
     }
 
-    // Handle numeric or string sorting
     if (aValue < bValue) {
       return sortConfig.direction === 'asc' ? -1 : 1;
     }
@@ -248,7 +239,6 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
     }
     return 0;
   });
-
 
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -263,28 +253,27 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   }
 
   const totalHours = Object.values(totals).reduce((total, monthTotal) => total + monthTotal, 0);
+
   const handleHrs = async (checked: boolean) => {
-    setShowHrs(checked)
-    const response = await axios.put("/api/projects/" + projectId, {
-      "showHrs": checked
+    setShowHrs(checked);
+    await axios.put(`/api/projects/${projectId}`, {
+      showHrs: checked,
     }, {
       headers: {
         'x-api-key': process.env.NEXT_PUBLIC_API_KEY!,
       },
-    })
+    });
+    
     if (checked) {
       applyFilter(project.periodOfPerformance.startDate, project.periodOfPerformance.endDate, allUserHours, allMonths, allTotals);
-
     } else {
       applyFilter(dateRange[0].startDate!, dateRange[0].endDate!, allUserHours, allMonths, allTotals);
-
     }
+  };
 
-  }
   return (
     <div className="p-4 w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
       <Header pageTitle={`Project Report ${projectId}`} description={description} />
-
       <ToastContainer />
       <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} checked={showHrs} />
 
@@ -301,8 +290,8 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   Data as of: {lastUpdated.createdAt}
                 </span>
               </div>
-              {groupProjects?.length > 0 &&
-                <div className="text-lg font-bold text-gray-800 dark:text-gray-100" >
+              {groupProjects?.length > 0 && (
+                <div className="text-sm font-bold text-gray-800 dark:text-gray-100">
                   Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
                   {!projectFlag && (
                     <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: projectFlag ? 'black' : 'red' }}>
@@ -310,19 +299,38 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                     </span>
                   )}
                 </div>
-              }
-              <div className='flex items-center gap-2'>
+              )}
+              <div className="flex items-center gap-2">
+                {/* Custom Switch Component */}
+                <div className="flex items-center space-x-4">
+      {/* Left Label */}
+      <span className={`transition-all duration-300 ease-in-out 
+        ${!showHrs ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
+        All Months
+      </span>
 
-                <Switch.Root
-                  className="w-[42px] h-[25px] bg-blackA6 rounded-full relative shadow-[0_2px_10px] shadow-blackA4 focus:shadow-[0_0_0_2px] focus:shadow-black data-[state=checked]:bg-black data-[state=unchecked]:bg-[#3b82f6] outline-none cursor-pointer"
-                  id="airplane-mode"
-                  checked={showHrs}
-                  onCheckedChange={handleHrs}
-                >
-                  <Switch.Thumb className="block w-[21px] h-[21px] bg-white rounded-full shadow-[0_2px_2px] shadow-blackA4 transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[19px]" />
-                </Switch.Root>
+      {/* Switch Container */}
+      <Switch.Root
+        className={`relative inline-flex items-center w-[70px] h-[36px] rounded-full 
+        ${showHrs ? 'bg-blue-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-700'} 
+        transition-colors duration-300 ease-in-out cursor-pointer`}
+        checked={showHrs}
+        onCheckedChange={handleHrs}
+      >
+        {/* Thumb */}
+        <Switch.Thumb
+          className={`block w-[32px] h-[32px] bg-white dark:bg-gray-200 rounded-full shadow-md transform transition-transform duration-300 ease-in-out 
+          ${showHrs ? 'translate-x-[34px]' : 'translate-x-[2px]'}`}
+        />
+      </Switch.Root>
 
-                <button
+      {/* Right Label */}
+      <span className={`transition-all duration-300 ease-in-out 
+        ${showHrs ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
+        Enforce POP
+      </span>
+    </div>
+               <button
                   className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   onClick={() => setIsModalOpen(true)}
                 >
@@ -352,7 +360,6 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   <th className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer" onClick={() => requestSort('total')}>Total Hours</th>
                 </tr>
               </thead>
-
 
               <tbody>
                 {sortedUserHours
@@ -384,7 +391,6 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                     );
                   })}
               </tbody>
-
 
               <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
                 <tr>
