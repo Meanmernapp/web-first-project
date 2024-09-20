@@ -3,13 +3,20 @@ import { useRouter } from 'next/router';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Header from '../components/Header';
-
+interface ProjectProps {
+  name: string;
+  status?: string;
+  contractType?: string
+  budgetHours: number
+  projectTotalHours?: number
+}
 interface Project {
   name: string;
   status?: string;
   contractType?: string
-  budgetHours?: number
+  budgetHours: number
   projectTotalHours?: number
+  groupProjects?: ProjectProps[]
 }
 
 const Dashboard: React.FC = () => {
@@ -152,12 +159,28 @@ const Dashboard: React.FC = () => {
             <h3 className="text-xl font-bold mb-2">{prefix}</h3>
             <div className="space-y-2">
               {groupProjectsByPrefix(filteredProjects)[prefix].map(project => {
-                let hrsRemain = project.budgetHours && project.projectTotalHours && ((project.budgetHours - project.projectTotalHours));
-                let progress = hrsRemain && project.budgetHours && Math.round(((hrsRemain) / (project.budgetHours)) * 100);
-                let hrsUsed = project.budgetHours && project.projectTotalHours && project.projectTotalHours;
-                let progressUsed = hrsUsed && project.budgetHours && Math.round((hrsUsed / project.budgetHours) * 100);
+                let hrsRemain = project.budgetHours && project.groupProjects?.length
+                  ? project.budgetHours - project.groupProjects.reduce((acc: number, groupProject: any) => acc + (groupProject.projectTotalHours || 0), 0)
+                  : project.budgetHours - (project.projectTotalHours || 0);
 
-                console.log(hrsRemain, progress, hrsUsed, progressUsed);
+                let progress = hrsRemain && project.budgetHours
+                  ? Math.round((hrsRemain / project.budgetHours) * 100)
+                  : 0;
+
+                let hrsUsed = project.budgetHours && project.groupProjects?.length
+                  ? project.groupProjects.reduce((acc: number, groupProject: any) => acc + (groupProject.projectTotalHours || 0), 0)
+                  : project.projectTotalHours || 0;
+
+                let progressUsed = hrsUsed && project.budgetHours
+                  ? Math.round((hrsUsed / project.budgetHours) * 100)
+                  : 0;
+
+
+                // if (project.name == 'CIA-01' || project.name == 'CIA-04'
+                // ) {
+
+                //   console.log(project.name, hrsRemain, progress, hrsUsed, progressUsed)
+                // }
                 // Determine the color based on the progress
                 let bgColor = 'bg-gray-300 dark:bg-gray-600'; // Default color (less than 70%)
                 if (progressUsed && progress)
@@ -182,7 +205,7 @@ const Dashboard: React.FC = () => {
                           {project.contractType
                             ? (project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)")
                             : ""
-                          }
+                          } {project.groupProjects?.length ? "(G)" : null}
                         </span>
 
 
@@ -216,6 +239,11 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center justify-center gap-2">
             <div className="w-4 h-4  bg-red-500 rounded-md "></div>
             <span className="text-center">Greater than 85% or negative</span>
+          </div>
+
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-4 border border-red-500 rounded-md ">G</div>
+            <span className="text-center">Group are indicated with (G) </span>
           </div>
         </div>
       </div>

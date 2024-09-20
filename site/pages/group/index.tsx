@@ -245,7 +245,7 @@ export default function ProjectList() {
                         <tr key={group._id} className="bg-gray-800 border-t border-gray-600">
                             <td className="p-3">{group._id}</td>
                             <td className="p-3">{group.name}</td>
-                            <td className="p-3">{group.projectIds.map((id: any) => projects.find((p) => p._id === id.value)?.name).join(', ')}</td>
+                            <td className="p-3">{group.projectIds.map((id: any) => projects.find((p) => p._id === id.value)?.name).sort().join(', ')}</td>
                             <td className="p-3 flex space-x-3 items-end justify-end">
                                 <button
                                     onClick={() => handleEditGroup(group)}
