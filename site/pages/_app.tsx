@@ -2,16 +2,19 @@ import { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import Modal from 'react-modal';
+import { Inter } from 'next/font/google';
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/globals.css';
 
-// Ensure the environment variables are loaded
-import '../utils/config';
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+});
 
 Modal.setAppElement('#__next');
 
 function MyApp({ Component, pageProps }: AppProps) {
-
   useEffect(() => {
     Modal.setAppElement('#__next');
 
@@ -27,13 +30,12 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <>
+    <div className={`${inter.variable} font-sans min-h-screen bg-surface text-fg antialiased`}>
       <Head>
         <link rel="icon" href="/favicon.ico" />
-        {/* Add other head elements here */}
       </Head>
       <Component {...pageProps} />
-    </>
+    </div>
   );
 }
 

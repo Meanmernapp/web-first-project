@@ -66,32 +66,35 @@ const UserInfo: React.FC<UserInfoProps> = ({ username, totalUtilization }) => {
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center">
-        <div className="bg-blue-500 dark:bg-blue-700 rounded-md p-4 m-auto max-w-full text-center">
-          <div className="flex justify-center items-center text-black dark:text-white">
-            <div className="mx-2">
-              <span><b>Type:</b> {userDetails?.employeeType ?? 'N/A'}</span>
+      <div className="ui-card mt-4 px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center text-sm text-fg">
+            <div>
+              <span className="text-fg-subtle">Type</span>
+              <div className="font-medium">{userDetails?.employeeType ?? 'N/A'}</div>
             </div>
-            <div className="mx-2">
-              <span><b>Title:</b> {userDetails?.title ?? 'N/A'}</span>
+            <div>
+              <span className="text-fg-subtle">Title</span>
+              <div className="font-medium">{userDetails?.title ?? 'N/A'}</div>
             </div>
-            <div className="mx-2">
-              <span><b>Supervisor:</b> {userDetails?.supervisor ?? 'N/A'}</span>
+            <div>
+              <span className="text-fg-subtle">Supervisor</span>
+              <div className="font-medium">{userDetails?.supervisor ?? 'N/A'}</div>
             </div>
-            <div className="mx-2 flex items-center">
-              <span><b>Utilization over this period:</b> {totalUtilization.toFixed(2)}%</span>
-              {/* Tippy Tooltip for Utilization Explanation */}
+            <div className="flex items-center justify-center gap-2">
+              <div>
+                <span className="text-fg-subtle">Utilization (period)</span>
+                <div className="font-medium tabular-nums text-accent">{totalUtilization.toFixed(2)}%</div>
+              </div>
               <Tippy
-                content="Utilization % calculated as Non-WebFirst Hours (all hrs except WebFirst-xxx) / Total Hours worked, for the selected time period"
+                content="Non-WebFirst hours ÷ total hours for the selected date range."
                 placement="top"
-                className="z-50"
-                theme=""
+                theme="dark"
               >
-                {/* Custom Icon Color based on Dark/Light Mode */}
-                <span className="ml-2 cursor-pointer text-gray-600 dark:text-blue-300"><FaInfoCircle /></span>
+                <span className="cursor-default text-accent" tabIndex={0} role="button" aria-label="Utilization help">
+                  <FaInfoCircle />
+                </span>
               </Tippy>
             </div>
-          </div>
         </div>
       </div>
     </div>

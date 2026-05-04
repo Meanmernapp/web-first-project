@@ -243,119 +243,147 @@ const ProjectAlerts: React.FC = () => {
   };
   
 
+  const th =
+    'cursor-pointer select-none px-2 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg md:px-4';
+
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <Header pageTitle="Project Alerts" />
-      <ToastContainer />
-      <div className="p-4 bg-indigo-500 text-white rounded-md shadow-md mb-4 flex justify-center items-center text-center">
-        This page allows you to set notifications for projects reaching Low and High alert Budget.
-      </div>
-      <div className="p-4">
-        <div className="mb-4 flex flex-col md:flex-row justify-between">
-          <button
-            onClick={() => setShowActive(!showActive)}
-            className="py-2 px-4 bg-gray-500 dark:bg-indigo-600 hover:bg-gray-600 dark:hover:bg-indigo-700 text-white font-semibold rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {showActive ? 'Show Inactive Projects' : 'Show Active Projects'}
-          </button>
+    <div className="min-h-screen bg-surface">
+      <Header
+        pageTitle="Budget alerts"
+        description="Configure email notifications when projects approach low and high budget thresholds."
+      />
+      <ToastContainer theme="dark" />
+      <div className="app-shell">
+        <div className="ui-card mb-6 border-accent/25 bg-accent-dim/40 px-4 py-3 text-center text-sm text-fg">
+          This page allows you to set notifications for projects reaching low and high budget alert levels.
         </div>
-        <div className="overflow-x-auto">
+        <div className="mb-6 flex flex-wrap items-center justify-end gap-4">
+          <div
+            className="inline-flex rounded-xl border border-line bg-surface-inset p-1 shadow-inner"
+            role="group"
+            aria-label="Project status filter"
+          >
+            <button
+              type="button"
+              className={showActive ? 'btn-segment btn-segment-active' : 'btn-segment btn-segment-inactive'}
+              onClick={() => setShowActive(true)}
+            >
+              Active projects
+            </button>
+            <button
+              type="button"
+              className={!showActive ? 'btn-segment btn-segment-active' : 'btn-segment btn-segment-inactive'}
+              onClick={() => setShowActive(false)}
+            >
+              Inactive projects
+            </button>
+          </div>
+        </div>
+        <div className="table-shell max-h-[min(75vh,900px)] overflow-auto">
           <form>
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
+            <table className="table-data min-w-full border-collapse divide-y divide-line text-left">
+              <thead className="sticky top-0 z-10 border-b border-line bg-surface-inset">
                 <tr>
-                  <th className="px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider cursor-pointer" onClick={() => handleSort('selected')}>
+                  <th scope="col" className={th} onClick={() => handleSort('selected')}>
                     Select
                   </th>
-                  <th onClick={() => handleSort('name')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Project Name
+                  <th scope="col" onClick={() => handleSort('name')} className={th}>
+                    Project name
                   </th>
-                  <th onClick={() => handleSort('description')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
+                  <th scope="col" onClick={() => handleSort('description')} className={th}>
                     Description
                   </th>
-                  <th onClick={() => handleSort('pm')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Project Manager
+                  <th scope="col" onClick={() => handleSort('pm')} className={th}>
+                    Project manager
                   </th>
-                  <th onClick={() => handleSort('customEmails')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Custom Emails
+                  <th scope="col" onClick={() => handleSort('customEmails')} className={th}>
+                    Custom emails
                   </th>
-                  <th onClick={() => handleSort('lastLowAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Status Low
+                  <th scope="col" onClick={() => handleSort('lastLowAlert')} className={th}>
+                    Status low
                   </th>
-                  <th onClick={() => handleSort('lastHighAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Status High
+                  <th scope="col" onClick={() => handleSort('lastHighAlert')} className={th}>
+                    Status high
                   </th>
-                  <th onClick={() => handleSort('lowAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    Low Alert
+                  <th scope="col" onClick={() => handleSort('lowAlert')} className={th}>
+                    Low alert %
                   </th>
-                  <th onClick={() => handleSort('highAlert')} className="cursor-pointer px-2 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">
-                    High Alert
+                  <th scope="col" onClick={() => handleSort('highAlert')} className={th}>
+                    High alert %
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {sortedProjects.map(project => {
-                  const alertConfig = alertConfigsState.find(config => config.projectName === project.name);
+              <tbody className="divide-y divide-line bg-surface-elevated">
+                {sortedProjects.map((project) => {
+                  const alertConfig = alertConfigsState.find((config) => config.projectName === project.name);
                   const isSelected = selectedProjects.has(project.name);
 
                   return (
-                    <tr key={project.name} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap">
+                    <tr key={project.name}>
+                      <td className="whitespace-nowrap px-2 py-3 md:px-4">
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleProjectSelection(project.name)}
-                          className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-400 border-gray-300 dark:border-gray-600 rounded"
+                          className="h-4 w-4 rounded border-line bg-surface-inset text-accent focus:ring-2 focus:ring-accent"
+                          aria-label={`Select ${project.name}`}
                         />
                       </td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">
-                        <Link href={`/project/${encodeURIComponent(project.name)}`} legacyBehavior>
-                          <a className="text-blue-500 hover:underline">{project.name}</a>
+                      <td className="whitespace-nowrap px-2 py-3 text-sm font-medium md:px-4">
+                        <Link
+                          href={`/project/${encodeURIComponent(project.name)}`}
+                          className="text-accent hover:text-accent-hover hover:underline"
+                        >
+                          {project.name}
                         </Link>
                       </td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                      <td className="max-w-xs px-2 py-3 text-sm text-fg md:px-4">
                         <div className="whitespace-pre-wrap break-words">{project.description}</div>
                       </td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">{project.pm}</td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          {['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map(email => (
-                            <label key={email} className="flex items-center space-x-2">
+                      <td className="whitespace-nowrap px-2 py-3 text-sm text-fg-muted md:px-4">{project.pm}</td>
+                      <td className="whitespace-nowrap px-2 py-3 md:px-4">
+                        <div className="flex flex-col gap-1.5">
+                          {['jscott@webfirst.com', 'spatel@webfirst.com', 'kdriskell@webfirst.com'].map((email) => (
+                            <label key={email} className="flex cursor-pointer items-center gap-2 text-sm text-fg">
                               <input
                                 type="checkbox"
                                 checked={alertConfig?.customEmails.includes(email) || false}
                                 onChange={(e) => handleEmailCheckboxChange(project.name, email, e.target.checked)}
-                                className="h-5 w-5 text-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-400 border-gray-300 dark:border-gray-600 rounded"
+                                className="h-4 w-4 rounded border-line bg-surface-inset text-accent focus:ring-2 focus:ring-accent"
                               />
-                              <span className="text-gray-900 dark:text-gray-100">{email}</span>
+                              <span className="break-all">{email}</span>
                             </label>
                           ))}
                         </div>
                       </td>
-                      <td className={`px-2 md:px-6 py-4 whitespace-nowrap ${
-  alertConfig?.lastLowAlert ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'
-}`}>
-  {getEmailStatus('50', alertConfig)}
-</td>
-<td className={`px-2 md:px-6 py-4 whitespace-nowrap ${
-  alertConfig?.lastHighAlert ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
-}`}>
-  {getEmailStatus('80', alertConfig)}
-</td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap">
+                      <td
+                        className={`whitespace-nowrap px-2 py-3 text-sm md:px-4 ${
+                          alertConfig?.lastLowAlert ? 'text-amber-300' : 'text-fg-muted'
+                        }`}
+                      >
+                        {getEmailStatus('50', alertConfig)}
+                      </td>
+                      <td
+                        className={`whitespace-nowrap px-2 py-3 text-sm md:px-4 ${
+                          alertConfig?.lastHighAlert ? 'text-rose-300' : 'text-fg-muted'
+                        }`}
+                      >
+                        {getEmailStatus('80', alertConfig)}
+                      </td>
+                      <td className="whitespace-nowrap px-2 py-3 md:px-4">
                         <input
                           type="number"
                           value={alertConfig?.lowAlert ? Math.round(alertConfig.lowAlert * 100) : 0}
                           onChange={(e) => handleAlertThresholdChange(project.name, 'lowAlert', Number(e.target.value))}
-                          className="w-16 md:w-20 border border-gray-300 dark:border-gray-600 rounded-md p-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                          className="input-dark w-16 py-1.5 text-sm tabular-nums md:w-20"
                         />
                       </td>
-                      <td className="px-2 md:px-6 py-4 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-2 py-3 md:px-4">
                         <input
                           type="number"
                           value={alertConfig?.highAlert ? Math.round(alertConfig.highAlert * 100) : 0}
                           onChange={(e) => handleAlertThresholdChange(project.name, 'highAlert', Number(e.target.value))}
-                          className="w-16 md:w-20 border border-gray-300 dark:border-gray-600 rounded-md p-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+                          className="input-dark w-16 py-1.5 text-sm tabular-nums md:w-20"
                         />
                       </td>
                     </tr>

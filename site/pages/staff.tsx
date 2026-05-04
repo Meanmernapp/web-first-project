@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Header from '../components/Header';
 import 'react-toastify/dist/ReactToastify.css';
@@ -27,7 +26,6 @@ type UserTimeEntriesResponse = {
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 const Staff: React.FC = () => {
-  const router = useRouter();
   const [sortConfig, setSortConfig] = useState<{ key: keyof User | 'utilization'; direction: 'ascending' | 'descending' } | null>(null);
   const [showContractors, setShowContractors] = useState<'Active' | 'Terminated'>('Active');
   const [showFullTime, setShowFullTime] = useState<'Active' | 'Terminated'>('Active');
@@ -160,6 +158,9 @@ const Staff: React.FC = () => {
     setSortConfig({ key, direction });
   };
 
+  const thClass = 'cursor-pointer select-none px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted transition-colors hover:text-fg';
+  const tdClass = 'border-b border-line px-4 py-2.5 text-sm text-fg';
+
   const renderTable = (userType: 'Full Time' | 'Contractor', showType: 'Active' | 'Terminated') => {
     const filteredUsers = sortedUsers.filter(user => user.employeeType === userType && user.status === showType);
 
@@ -167,85 +168,117 @@ const Staff: React.FC = () => {
     const startDate = `${currentYear}-01-01`;
     const endDate = `${currentYear}-12-31`;
 
+    const setShow =
+      userType === 'Full Time'
+        ? (v: 'Active' | 'Terminated') => setShowFullTime(v)
+        : (v: 'Active' | 'Terminated') => setShowContractors(v);
+
     return (
-      <div className="overflow-x-auto shadow-lg rounded-lg mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-black dark:text-white">{userType} Employees</h2>
-          <div>
+      <section className="mb-10">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-fg">{userType} employees</h2>
+          <div
+            className="inline-flex w-fit rounded-xl border border-line bg-surface-inset p-1 shadow-inner"
+            role="group"
+            aria-label={`${userType} status filter`}
+          >
             <button
-              className={`px-4 py-2 rounded ${showType === 'Active' ? 'bg-blue-500 text-white' : 'bg-gray-300 dark:bg-gray-600 dark:text-gray-300'}`}
-              onClick={() => userType === 'Full Time' ? setShowFullTime('Active') : setShowContractors('Active')}
+              type="button"
+              className={showType === 'Active' ? 'btn-segment btn-segment-active' : 'btn-segment btn-segment-inactive'}
+              onClick={() => setShow('Active')}
             >
               Active
             </button>
             <button
-              className={`ml-2 px-4 py-2 rounded ${showType === 'Terminated' ? 'bg-blue-500 text-white' : 'bg-gray-300 dark:bg-gray-600 dark:text-gray-300'}`}
-              onClick={() => userType === 'Full Time' ? setShowFullTime('Terminated') : setShowContractors('Terminated')}
+              type="button"
+              className={showType === 'Terminated' ? 'btn-segment btn-segment-active' : 'btn-segment btn-segment-inactive'}
+              onClick={() => setShow('Terminated')}
             >
               Inactive
             </button>
           </div>
         </div>
-        <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-left">
-            <tr>
-              <th onClick={() => requestSort('username')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer">Username</th>
-              <th onClick={() => requestSort('employeeType')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer">Employee Type</th>
-              <th onClick={() => requestSort('title')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer">Title</th>
-              <th onClick={() => requestSort('supervisor')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer">Supervisor</th>
-              <th onClick={() => requestSort('utilization')} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 cursor-pointer flex items-center">
-                Utilization (%)
-                <Tippy content="Utilization % calculated as Non-WebFirst Hours (all hrs except WebFirst-xxx) / Total Hours worked , for the selected time period">
-                  <span className="ml-2 text-blue-500 cursor-pointer"><FaInfoCircle /></span>
-                </Tippy>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="text-black dark:text-white">
-            {filteredUsers.length === 0 ? (
+        <div className="table-shell max-h-[70vh] overflow-auto">
+          <table className="table-data min-w-full border-collapse text-left">
+            <thead className="sticky top-0 z-10 border-b border-line bg-surface-inset">
               <tr>
-                <td colSpan={5} className="py-2 px-4 text-center">{fetchError || 'No data available.'}</td>
+                <th scope="col" onClick={() => requestSort('username')} className={thClass}>Username</th>
+                <th scope="col" onClick={() => requestSort('employeeType')} className={thClass}>Employee type</th>
+                <th scope="col" onClick={() => requestSort('title')} className={thClass}>Title</th>
+                <th scope="col" onClick={() => requestSort('supervisor')} className={thClass}>Supervisor</th>
+                <th scope="col" onClick={() => requestSort('utilization')} className={`${thClass} whitespace-nowrap`}>
+                  <span className="inline-flex items-center gap-2">
+                    Utilization (%)
+                    <Tippy
+                      content="Utilization % = non-WebFirst hours (all hours except WEBFIRST-*) ÷ total hours for 2024 months in the dataset."
+                      theme="dark"
+                      placement="top"
+                    >
+                      <span className="text-accent hover:text-accent-hover" tabIndex={0} role="button" aria-label="Utilization help">
+                        <FaInfoCircle />
+                      </span>
+                    </Tippy>
+                  </span>
+                </th>
               </tr>
-            ) : (
-              filteredUsers.map((user, index) => (
-                <tr key={user.username} className={index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600">
-                    <Link href={`/users/${user.username}?startDate=${startDate}&endDate=${endDate}`} legacyBehavior>
-                      <a className="text-blue-500 hover:underline">{user.username}</a>
-                    </Link>
+            </thead>
+            <tbody className="bg-surface-elevated">
+              {filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className={`${tdClass} py-8 text-center text-fg-muted`}>
+                    {fetchError || 'No data available.'}
                   </td>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600">{user.employeeType}</td>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600">{user.title}</td>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600">{user.supervisor}</td>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600">{userUtilizations[user.username]?.toFixed(2) ?? 'N/A'}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colSpan={5} className="py-2 px-4 text-center text-black dark:text-white">
-                End of {userType} Employees
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+              ) : (
+                filteredUsers.map((user) => (
+                  <tr key={user.username}>
+                    <td className={tdClass}>
+                      <Link
+                        href={`/users/${user.username}?startDate=${startDate}&endDate=${endDate}`}
+                        className="font-medium text-accent hover:text-accent-hover hover:underline"
+                      >
+                        {user.username}
+                      </Link>
+                    </td>
+                    <td className={`${tdClass} text-fg-muted`}>{user.employeeType}</td>
+                    <td className={tdClass}>{user.title}</td>
+                    <td className={`${tdClass} text-fg-muted`}>{user.supervisor}</td>
+                    <td className={`${tdClass} tabular-nums text-fg`}>{userUtilizations[user.username]?.toFixed(2) ?? 'N/A'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-line bg-surface-inset">
+                <td colSpan={5} className="px-4 py-2 text-center text-xs text-fg-subtle">
+                  End of {userType} employees
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
     );
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <Header pageTitle={`Staff List ${new Date().getFullYear()}`} />
-      <div className="p-4">
+    <div className="min-h-screen bg-surface">
+      <Header pageTitle={`Staff list — ${new Date().getFullYear()}`} />
+      <div className="app-shell">
         {fetchError && (
-          <div className="text-red-500 dark:text-red-400 mb-4">{fetchError}</div>
+          <div className="ui-card mb-6 border-rose-500/40 bg-rose-950/25 px-4 py-3 text-sm text-rose-100">
+            {fetchError}
+          </div>
         )}
-        {loading && <div>Loading...</div>}
+        {loading && (
+          <div className="ui-card mb-6 px-4 py-8 text-center text-fg-muted">
+            Loading utilization…
+          </div>
+        )}
         {renderTable('Full Time', showFullTime)}
         {renderTable('Contractor', showContractors)}
       </div>
-      <ToastContainer />
+      <ToastContainer theme="dark" />
     </div>
   );
 };

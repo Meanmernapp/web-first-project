@@ -340,85 +340,99 @@ const UserPage: React.FC = () => {
   });
 
   if (loading) {
-    return <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface text-fg-muted">
+        Loading…
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="bg-red-500 text-white p-4">{error}</div>;
+    return (
+      <div className="min-h-screen bg-surface p-6">
+        <div className="ui-card border-rose-500/40 bg-rose-950/25 p-4 text-rose-100">{error}</div>
+      </div>
+    );
   }
 
   const totalHours = Object.values(totals).reduce((total, monthTotal) => total + monthTotal, 0);
   const displayName = user?.employeeType === 'Contractor' ? `${user?.username} (C)` : user?.username;
 
-  return (
-    <div className="p-4 w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <Header pageTitle={`User Report: ${displayName}`} />
+  const contractLabel = (p: MonthlyUserHours) =>
+    (p as { contractType?: string }).contractType === 'Time and Materials' ? '(T&M)' : '(FFP)';
 
-      <ToastContainer />
-      <UserInfo username={username} totalUtilization={totalUtilization} />
-      <div className="overflow-x-auto shadow-lg rounded-lg mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-lg font-bold text-gray-800 dark:text-gray-100">
-            User Hours Report <span className="text-sm ml-2 text-gray-600 dark:text-gray-400">
-              Data as of: {lastUpdated.createdAt}
-            </span>
+  return (
+    <div className="min-h-screen w-full bg-surface">
+      <Header pageTitle={`User report: ${displayName}`} />
+
+      <ToastContainer theme="dark" />
+      <div className="app-shell">
+        <UserInfo username={username} totalUtilization={totalUtilization} />
+        <div className="ui-card mt-8 overflow-hidden p-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-fg">Hours by project</h2>
+              <p className="mt-1 text-sm text-fg-muted">Data as of: {lastUpdated.createdAt}</p>
+            </div>
+            <button type="button" className="btn-primary shrink-0" onClick={() => setIsModalOpen(true)}>
+              Date range
+            </button>
           </div>
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Select Date Range
-          </button>
-        </div>
-        <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
+          <div className="table-shell max-h-[min(70vh,880px)] overflow-auto">
+        <table className="table-data min-w-full border-collapse text-left text-sm">
+          <thead className="sticky top-0 z-10 border-b border-line bg-surface-inset">
             <tr>
               <th
-                className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left cursor-pointer"
+                scope="col"
+                className="cursor-pointer px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg"
                 onClick={() => requestSort('projectName')}
               >
-                Project Name
+                Project
               </th>
               {months.map((month: string) => (
                 <th
                   key={month}
-                  className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer"
+                  scope="col"
+                  className="cursor-pointer whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg"
                   onClick={() => requestSort(month)}
                 >
                   {format(parseISO(month), 'MMMM yyyy')}
                 </th>
               ))}
               <th
-                className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer"
+                scope="col"
+                className="cursor-pointer px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg"
                 onClick={() => requestSort('total')}
               >
-                Total Hours
+                Total
               </th>
             </tr>
           </thead>
-          <tbody className="text-gray-900 dark:text-gray-100">
+          <tbody className="bg-surface-elevated">
             {sortedUserProjects.length === 0 ? (
               <tr>
-                <td colSpan={months.length + 2} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                <td colSpan={months.length + 2} className="border-b border-line px-3 py-8 text-center text-fg-muted">
                   No data available for this user.
                 </td>
               </tr>
             ) : (
               sortedUserProjects.map((project: MonthlyUserHours) => (
                 <tr key={project.projectName}>
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left">
-                    <Link href={`/project/${project.projectName}`} legacyBehavior>
-                      <a className="text-blue-500 dark:text-blue-400 hover:underline">
-                        {project.projectName} {project.contractType === 'Time and Materials' ? "(T&M)" : "(FFP)"}
-                      </a>
+                  <td className="border-b border-line px-3 py-2 text-left">
+                    <Link
+                      href={`/project/${project.projectName}`}
+                      className="font-medium text-accent hover:text-accent-hover hover:underline"
+                    >
+                      {project.projectName}{' '}
+                      <span className="font-normal text-fg-muted">{contractLabel(project)}</span>
                     </Link>
                   </td>
                   {months.map((month: string) => (
-                    <td key={month} className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                    <td key={month} className="border-b border-line px-3 py-2 text-center tabular-nums text-fg-muted">
                       {project[month] !== '-' ? Number(project[month] ?? 0).toFixed(2) : project[month]}
                     </td>
                   ))}
-                  <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center">
+                  <td className="border-b border-line px-3 py-2 text-center tabular-nums text-fg">
                     {months.reduce((total, month: string) => total + (project[month] !== '-' ? Number(project[month] ?? 0) : 0), 0).toFixed(2)}
                   </td>
                 </tr>
@@ -426,46 +440,53 @@ const UserPage: React.FC = () => {
             )}
           </tbody>
 
-          <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-            <tr>
-              <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left">Total</th>
+          <tfoot className="border-t border-line bg-surface-inset text-xs">
+            <tr className="font-semibold uppercase tracking-wide text-fg-muted">
+              <th className="px-3 py-2.5 text-left">Total</th>
               {months.map((month: string) => (
-                <th key={month} className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">
+                <th key={month} className="px-3 py-2.5 text-center tabular-nums text-fg">
                   {(totals[month] ?? 0).toFixed(2)}
                 </th>
               ))}
-              <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">
+              <th className="px-3 py-2.5 text-center tabular-nums text-fg">
                 {totalHours.toFixed(2)}
               </th>
             </tr>
-            <tr className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-              <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left">Utilization</th>
+            <tr className="text-fg-muted">
+              <th className="px-3 py-2.5 text-left font-semibold uppercase tracking-wide">Utilization</th>
               {months.map((month: string) => (
-                <th key={month} className={`py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center ${utilizations[month] >= 80 ? 'text-green-500' : utilizations[month] >= 60 ? 'text-yellow-500' : 'text-red-500'}`}>
+                <th
+                  key={month}
+                  className={`px-3 py-2.5 text-center tabular-nums font-medium ${
+                    utilizations[month] >= 80 ? 'text-emerald-400' : utilizations[month] >= 60 ? 'text-amber-300' : 'text-rose-400'
+                  }`}
+                >
                   {utilizations[month].toFixed(2)}%
                 </th>
               ))}
-              <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">{totalUtilization.toFixed(2)}%</th>
+              <th className="px-3 py-2.5 text-center tabular-nums font-medium text-accent">{totalUtilization.toFixed(2)}%</th>
             </tr>
           </tfoot>
         </table>
-      </div>
-      <div className="flex flex-col md:flex-row mt-8 gap-4">
-        <div className="w-full md:w-1/2">
-          <ProjectParticipationPieChart username={username} dateRange={dateRange} />
+          </div>
         </div>
-        <div className="w-full md:w-1/2">
-          <HoursOverTimeBarChart username={username} dateRange={dateRange} />
+        <div className="mt-8 flex flex-col gap-4 md:flex-row">
+          <div className="ui-card w-full p-4 md:w-1/2">
+            <ProjectParticipationPieChart username={username} dateRange={dateRange} />
+          </div>
+          <div className="ui-card w-full p-4 md:w-1/2">
+            <HoursOverTimeBarChart username={username} dateRange={dateRange} />
+          </div>
         </div>
+        <DateRangePickerModal
+          isOpen={isModalOpen}
+          onRequestClose={() => setIsModalOpen(false)}
+          initialRanges={dateRange}
+          onApply={handleApplyDateRange}
+          overallStartDate={new Date('2023-01-01')}
+          overallEndDate={new Date()}
+        />
       </div>
-      <DateRangePickerModal
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        initialRanges={dateRange}
-        onApply={handleApplyDateRange}
-        overallStartDate={new Date('2023-01-01')}
-        overallEndDate={new Date()}
-      />
     </div>
   );
 };

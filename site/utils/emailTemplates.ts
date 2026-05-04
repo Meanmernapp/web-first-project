@@ -1,16 +1,27 @@
 // utils/emailTemplates.ts
 import nodemailer from 'nodemailer';
-import { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM, FROM_NAME } from './config';
+import {
+  SMTP_HOST,
+  SMTP_PORT,
+  SMTP_USER,
+  SMTP_PASS,
+  SMTP_FROM,
+  FROM_NAME,
+  assertSmtpConfigured,
+} from './config';
 
-const transporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: SMTP_PORT,
-  secure: true,
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
-  },
-});
+function getTransporter() {
+  assertSmtpConfigured();
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: true,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+  });
+}
 
 const BCC_EMAIL = 'kostas@webfirst.com'; // Hardcoded BCC email
 
@@ -36,7 +47,7 @@ ${FROM_NAME}`;
     text,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
+  getTransporter().sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log('Error sending email: ', error);
     } else {
@@ -76,7 +87,7 @@ ${FROM_NAME}`;
     text,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
+  getTransporter().sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log('Error sending email: ', error);
     } else {

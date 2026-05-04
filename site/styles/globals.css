@@ -2,7 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add your custom global styles here */
-body {
-  @apply bg-gray-900 text-white;
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-surface font-sans text-fg antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent-dim text-fg;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .ui-card {
+    @apply rounded-xl border border-line bg-surface-elevated shadow-card;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface shadow-sm transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-transparent px-3 py-2 text-sm font-medium text-fg-muted transition-colors hover:border-line-strong hover:bg-surface-inset hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+  }
+
+  .btn-segment {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-colors;
+  }
+
+  .btn-segment-active {
+    @apply bg-accent text-surface shadow-sm;
+  }
+
+  .btn-segment-inactive {
+    @apply text-fg-muted hover:bg-surface-inset hover:text-fg;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-xl border border-line bg-surface-elevated;
+  }
+
+  .table-sticky-header th {
+    @apply sticky top-0 z-10 border-b border-line bg-surface-inset text-left text-xs font-semibold uppercase tracking-wide text-fg-muted;
+  }
+
+  .input-dark {
+    @apply w-full rounded-lg border border-line bg-surface-inset px-3 py-2 text-sm text-fg placeholder:text-fg-subtle shadow-inner transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent;
+  }
+
+  .table-data tbody tr:nth-child(even) {
+    @apply bg-surface/50;
+  }
+
+  .table-data tbody tr:hover {
+    @apply bg-surface-inset/80;
+  }
+}
+
+/* react-toastify — dark surfaces */
+.Toastify__toast-theme--light,
+.Toastify__toast-theme--dark {
+  @apply rounded-lg border border-line bg-surface-elevated text-fg;
+}
+
+.Toastify__close-button {
+  @apply text-fg-muted opacity-80 hover:opacity-100;
 }

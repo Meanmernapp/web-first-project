@@ -1,7 +1,75 @@
-import { useState, useEffect } from 'react';
-import Select from 'react-select';
-import { FiEdit, FiTrash2 } from 'react-icons/fi'; // Edit and Delete Icons from react-icons
+import { useState, useEffect, useMemo } from 'react';
+import Select, { StylesConfig, ThemeConfig } from 'react-select';
+import { FiEdit, FiTrash2 } from 'react-icons/fi';
 import Header from '@/components/Header';
+
+const selectTheme: ThemeConfig = (theme) => ({
+    ...theme,
+    borderRadius: 8,
+    colors: {
+        ...theme.colors,
+        primary: '#38bdf8',
+        primary25: 'rgba(56, 189, 248, 0.12)',
+        primary50: 'rgba(56, 189, 248, 0.2)',
+        neutral0: '#18181b',
+        neutral5: '#121214',
+        neutral10: '#27272a',
+        neutral20: '#3f3f46',
+        neutral30: '#52525b',
+        neutral40: '#71717a',
+        neutral50: '#a1a1aa',
+        neutral60: '#d4d4d8',
+        neutral70: '#e4e4e7',
+        neutral80: '#fafafa',
+        neutral90: '#fafafa',
+    },
+});
+
+const selectStyles: StylesConfig<{ value: string; label: string }, true> = {
+    control: (base, state) => ({
+        ...base,
+        backgroundColor: '#121214',
+        borderColor: state.isFocused ? '#38bdf8' : '#27272a',
+        boxShadow: state.isFocused ? '0 0 0 1px #38bdf8' : 'none',
+        minHeight: 42,
+        '&:hover': { borderColor: '#3f3f46' },
+    }),
+    menuList: (base) => ({ ...base, padding: 4 }),
+    menu: (base) => ({
+        ...base,
+        backgroundColor: '#18181b',
+        border: '1px solid #27272a',
+        boxShadow: '0 12px 40px -12px rgba(0,0,0,0.5)',
+    }),
+    option: (base, state) => ({
+        ...base,
+        backgroundColor: state.isFocused ? '#27272a' : 'transparent',
+        color: '#fafafa',
+        cursor: 'pointer',
+        borderRadius: 6,
+    }),
+    multiValue: (base) => ({
+        ...base,
+        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+        borderRadius: 6,
+    }),
+    multiValueLabel: (base) => ({ ...base, color: '#e0f2fe' }),
+    multiValueRemove: (base) => ({
+        ...base,
+        color: '#7dd3fc',
+        ':hover': { backgroundColor: 'rgba(56, 189, 248, 0.25)', color: '#fff' },
+    }),
+    input: (base) => ({ ...base, color: '#fafafa' }),
+    placeholder: (base) => ({ ...base, color: '#71717a' }),
+    singleValue: (base) => ({ ...base, color: '#fafafa' }),
+    indicatorsContainer: (base) => ({ ...base }),
+    dropdownIndicator: (base, state) => ({
+        ...base,
+        color: state.isFocused ? '#38bdf8' : '#71717a',
+        ':hover': { color: '#38bdf8' },
+    }),
+    clearIndicator: (base) => ({ ...base, color: '#71717a', ':hover': { color: '#fafafa' } }),
+};
 
 interface Project {
     budgetHours?: any;
@@ -173,97 +241,121 @@ export default function ProjectList() {
         label: project.name,
     }));
 
+    const selectValue = useMemo(
+        () =>
+            projectOptions.filter((option) =>
+                selectedProjects.some((item: any) => {
+                    const v = typeof item === 'object' && item?.value != null ? item.value : item;
+                    return v === option.value;
+                }),
+            ),
+        [projectOptions, selectedProjects],
+    );
+
+    const projectNamesForGroup = (group: Group) =>
+        group.projectIds
+            .map((id: any) => {
+                const raw = typeof id === 'object' && id?.value != null ? id.value : id;
+                return projects.find((p) => p._id === raw)?.name;
+            })
+            .filter(Boolean)
+            .sort() as string[];
+
     return (
-        <div className="p-4 bg-gray-200 dark:bg-gray-900 min-h-screen">
-            <Header pageTitle="Project Timesheets" />
-            <h1 className="text-2xl font-bold mb-4 text-center">{isEditing ? 'Edit Group' : 'Create Group'}</h1>
+        <div className="min-h-screen bg-surface">
+            <Header
+                pageTitle="Project groups"
+                description="Combine projects that share budget hours and period of performance for grouped reporting."
+            />
+            <div className="app-shell">
+                <div className="ui-card p-6">
+                    <h2 className="mb-6 text-lg font-semibold text-fg">
+                        {isEditing ? 'Edit group' : 'Create group'}
+                    </h2>
 
-            <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Group Name:</label>
-                <input
-                    type="text"
-                    value={groupName}
-                    onChange={(e) => setGroupName(e.target.value)}
-                    placeholder="Enter group name"
-                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
-                />
+                    <div className="mb-6">
+                        <label htmlFor="group-name" className="mb-2 block text-sm font-medium text-fg-muted">
+                            Group name
+                        </label>
+                        <input
+                            id="group-name"
+                            type="text"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                            placeholder="Enter group name"
+                            className="input-dark"
+                        />
+                    </div>
+
+                    <div className="mb-6">
+                        <label className="mb-2 block text-sm font-medium text-fg-muted">Projects</label>
+                        <Select
+                            isMulti
+                            value={selectValue}
+                            options={projectOptions}
+                            onChange={handleSelect}
+                            placeholder="Select projects…"
+                            closeMenuOnSelect={false}
+                            theme={selectTheme}
+                            styles={selectStyles}
+                        />
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleSaveGroup}
+                        disabled={!groupName || selectedProjects.length === 0}
+                        className="btn-primary w-full sm:w-auto"
+                    >
+                        {isEditing ? 'Update group' : 'Create group'}
+                    </button>
+                </div>
+
+                <h2 className="mb-4 mt-10 text-lg font-semibold text-fg">Existing groups</h2>
+                <div className="table-shell overflow-x-auto">
+                    <table className="table-data min-w-full border-collapse text-left text-sm">
+                        <thead className="border-b border-line bg-surface-inset">
+                            <tr>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted">ID</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted">Name</th>
+                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted">Projects</th>
+                                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-fg-muted">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-surface-elevated">
+                            {groups?.map((group) => (
+                                <tr key={group._id}>
+                                    <td className="border-b border-line px-4 py-3 font-mono text-xs text-fg-subtle">{group._id}</td>
+                                    <td className="border-b border-line px-4 py-3 font-medium text-fg">{group.name}</td>
+                                    <td className="border-b border-line px-4 py-3 text-fg-muted">
+                                        {projectNamesForGroup(group).join(', ') || '—'}
+                                    </td>
+                                    <td className="border-b border-line px-4 py-3">
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleEditGroup(group)}
+                                                className="rounded-lg border border-line p-2 text-amber-400 transition-colors hover:border-amber-500/50 hover:bg-surface-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                                aria-label={`Edit ${group.name}`}
+                                            >
+                                                <FiEdit size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteGroup(group._id)}
+                                                className="rounded-lg border border-line p-2 text-rose-400 transition-colors hover:border-rose-500/50 hover:bg-surface-inset focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                                aria-label={`Delete ${group.name}`}
+                                            >
+                                                <FiTrash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
-            <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Select Projects:</label>
-                <Select
-                    isMulti
-                    value={projectOptions.filter((option) => selectedProjects.some((item: any) => item.value === option.value))}
-                    options={projectOptions}
-                    onChange={handleSelect}
-                    placeholder="Select projects..."
-                    closeMenuOnSelect={false}
-                    className="text-black"
-                    styles={{
-                        control: (base) => ({
-                            ...base,
-                            backgroundColor: '#374151',
-                            color: 'white',
-                        }),
-                        menu: (base) => ({
-                            ...base,
-                            backgroundColor: '#4B5563',
-                        }),
-                        multiValue: (base) => ({
-                            ...base,
-                            backgroundColor: '#1F2937',
-                            color: 'white',
-                        }),
-                        multiValueLabel: (base) => ({
-                            ...base,
-                            color: 'white',
-                        }),
-                    }}
-                />
-            </div>
-
-            <button
-                onClick={handleSaveGroup}
-                disabled={!groupName || selectedProjects.length === 0}
-                className="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded disabled:opacity-50"
-            >
-                {isEditing ? 'Update Group' : 'Create Group'}
-            </button>
-
-            <h2 className="text-xl font-semibold mt-8 mb-4">Existing Groups</h2>
-            <table className="w-full table-auto text-white">
-                <thead className="bg-gray-700">
-                    <tr>
-                        <th className="p-3 text-left">ID</th>
-                        <th className="p-3 text-left">Group Name</th>
-                        <th className="p-3 text-left">Projects</th>
-                        <th className="p-3 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {groups?.map((group) => (
-                        <tr key={group._id} className="bg-gray-800 border-t border-gray-600">
-                            <td className="p-3">{group._id}</td>
-                            <td className="p-3">{group.name}</td>
-                            <td className="p-3">{group.projectIds.map((id: any) => projects.find((p) => p._id === id.value)?.name).sort().join(', ')}</td>
-                            <td className="p-3 flex space-x-3 items-end justify-end">
-                                <button
-                                    onClick={() => handleEditGroup(group)}
-                                    className="text-yellow-500 hover:text-yellow-400"
-                                >
-                                    <FiEdit size={20} />
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteGroup(group._id)}
-                                    className="text-red-500 hover:text-red-400"
-                                >
-                                    <FiTrash2 size={20} />
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
         </div>
     );
 }

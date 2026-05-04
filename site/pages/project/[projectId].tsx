@@ -249,7 +249,11 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   };
 
   if (error) {
-    return <div className="bg-red-500 text-white p-4">Error: {error}</div>;
+    return (
+      <div className="min-h-screen bg-surface p-6">
+        <div className="ui-card border-rose-500/40 bg-rose-950/25 p-4 text-rose-100">Error: {error}</div>
+      </div>
+    );
   }
 
   const totalHours = Object.values(totals).reduce((total, monthTotal) => total + monthTotal, 0);
@@ -272,78 +276,68 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
   };
 
   return (
-    <div className="p-4 w-full bg-gray-100 dark:bg-gray-900 min-h-screen">
-      <Header pageTitle={`Project Report ${projectId}`} description={description} />
-      <ToastContainer />
-      <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} checked={showHrs} />
+    <div className="min-h-screen w-full bg-surface">
+      <Header pageTitle={`Project report: ${projectId}`} description={description} />
+      <ToastContainer theme="dark" />
+      <div className="app-shell">
+        <ProjectInfo projectId={projectId} totalHours={totalHours} setDescription={setDescription} setProjectFlag={setProjectFlag} setGroupProjects={setGroupProjects} checked={showHrs} />
 
       {sortedUserHours.length === 0 ? (
-        <div className="text-gray-900 dark:text-gray-100 text-center mt-8">
+        <div className="ui-card mt-8 px-4 py-10 text-center text-fg-muted">
           No data available for this project.
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto shadow-lg rounded-lg mt-8">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-lg font-bold text-gray-800 dark:text-gray-100">
-                User Hours Report:  <span className="text-sm ml-2 text-gray-600 dark:text-gray-400">
-                  Data as of: {lastUpdated.createdAt}
-                </span>
+          <div className="ui-card mt-8 overflow-hidden p-4">
+            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-fg">User hours</h2>
+                <p className="mt-1 text-sm text-fg-muted">Data as of: {lastUpdated.createdAt}</p>
               </div>
               {groupProjects?.length > 0 && (
-                <div className="text-sm font-bold text-gray-800 dark:text-gray-100">
-                  Budget & Hrs. Remain grouped for {groupProjects?.join(", ")}
+                <div className="text-sm text-fg">
+                  <span className="font-medium">Budget grouped with:</span>{' '}
+                  <span className="text-fg-muted">{groupProjects?.join(', ')}</span>
                   {!projectFlag && (
-                    <span className="text-sm ml-2 text-gray-600 dark:text-gray-400" style={{ color: projectFlag ? 'black' : 'red' }}>
-                      (Project Hours not match)
-                    </span>
+                    <span className="ml-2 font-medium text-rose-400">(Project hours do not match)</span>
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                {/* Custom Switch Component */}
-                <div className="flex items-center space-x-4">
-      {/* Left Label */}
-      <span className={`transition-all duration-300 ease-in-out 
-        ${!showHrs ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
-        All Months
-      </span>
-
-      {/* Switch Container */}
-      <Switch.Root
-        className={`relative inline-flex items-center w-[70px] h-[36px] rounded-full 
-        ${showHrs ? 'bg-blue-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-700'} 
-        transition-colors duration-300 ease-in-out cursor-pointer`}
-        checked={showHrs}
-        onCheckedChange={handleHrs}
-      >
-        {/* Thumb */}
-        <Switch.Thumb
-          className={`block w-[32px] h-[32px] bg-white dark:bg-gray-200 rounded-full shadow-md transform transition-transform duration-300 ease-in-out 
-          ${showHrs ? 'translate-x-[34px]' : 'translate-x-[2px]'}`}
-        />
-      </Switch.Root>
-
-      {/* Right Label */}
-      <span className={`transition-all duration-300 ease-in-out 
-        ${showHrs ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
-        Enforce POP
-      </span>
-    </div>
-               <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Select Date Range
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <span className={`text-sm transition-colors ${!showHrs ? 'font-semibold text-accent' : 'text-fg-muted'}`}>
+                    All months
+                  </span>
+                  <Switch.Root
+                    className={`relative inline-flex h-9 w-[68px] shrink-0 cursor-pointer items-center rounded-full transition-colors ${
+                      showHrs ? 'bg-emerald-600' : 'bg-line-strong'
+                    }`}
+                    checked={showHrs}
+                    onCheckedChange={handleHrs}
+                  >
+                    <Switch.Thumb
+                      className={`block h-8 w-8 rounded-full bg-fg shadow-md transition-transform duration-200 ${
+                        showHrs ? 'translate-x-[34px]' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </Switch.Root>
+                  <span className={`text-sm transition-colors ${showHrs ? 'font-semibold text-accent' : 'text-fg-muted'}`}>
+                    Enforce POP
+                  </span>
+                </div>
+                <button type="button" className="btn-primary" onClick={() => setIsModalOpen(true)}>
+                  Date range
                 </button>
               </div>
             </div>
 
-            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-              <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
+            <div className="table-shell max-h-[min(70vh,880px)] overflow-auto">
+            <table className="table-data min-w-full border-collapse text-left text-sm">
+              <thead className="sticky top-0 z-10 border-b border-line bg-surface-inset">
                 <tr>
                   <th
-                    className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left cursor-pointer"
+                    scope="col"
+                    className="cursor-pointer px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg"
                     onClick={() => requestSort('username')}
                   >
                     Username
@@ -351,17 +345,18 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   {months.map((month: string) => (
                     <th
                       key={month}
-                      className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer"
+                      scope="col"
+                      className="cursor-pointer whitespace-nowrap px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg"
                       onClick={() => requestSort(month)}
                     >
                       {format(parseISO(month), 'MMMM yyyy')}
                     </th>
                   ))}
-                  <th className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center cursor-pointer" onClick={() => requestSort('total')}>Total Hours</th>
+                  <th scope="col" className="cursor-pointer px-3 py-2.5 text-center text-xs font-semibold uppercase tracking-wide text-fg-muted hover:text-fg" onClick={() => requestSort('total')}>Total</th>
                 </tr>
               </thead>
 
-              <tbody>
+              <tbody className="bg-surface-elevated">
                 {sortedUserHours
                   .filter((user: MonthlyUserHours) =>
                     months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0) > 0
@@ -371,20 +366,20 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                     const displayName = userType === 'Contractor' ? `${user.username} (C)` : user.username;
                     return (
                       <tr key={user.username}>
-                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-left text-gray-800 dark:text-gray-300">
-                          <Link href={`/users/${user.username}`} legacyBehavior>
-                            <a className="text-blue-500 hover:underline dark:text-blue-400">{displayName}</a>
+                        <td className="border-b border-line px-3 py-2 text-left">
+                          <Link href={`/users/${user.username}`} className="font-medium text-accent hover:text-accent-hover hover:underline">
+                            {displayName}
                           </Link>
                         </td>
                         {months.map((month: string) => (
                           <td
                             key={month}
-                            className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300"
+                            className="border-b border-line px-3 py-2 text-center tabular-nums text-fg-muted"
                           >
                             {user[month] !== '-' ? Number(user[month] ?? 0).toFixed(2) : user[month]}
                           </td>
                         ))}
-                        <td className="py-2 px-4 border-b border-gray-300 dark:border-gray-600 text-center text-gray-800 dark:text-gray-300">
+                        <td className="border-b border-line px-3 py-2 text-center tabular-nums text-fg">
                           {months.reduce((total, month) => total + (user[month] !== '-' ? Number(user[month] ?? 0) : 0), 0).toFixed(2)}
                         </td>
                       </tr>
@@ -392,31 +387,32 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
                   })}
               </tbody>
 
-              <tfoot className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200">
+              <tfoot className="border-t border-line bg-surface-inset text-xs font-semibold uppercase tracking-wide text-fg-muted">
                 <tr>
-                  <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-left cursor-pointer">Total</th>
+                  <th className="px-3 py-2.5 text-left">Total</th>
                   {months.map((month: string) => (
-                    <th key={month} className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">
+                    <th key={month} className="px-3 py-2.5 text-center tabular-nums text-fg">
                       {(totals[month] ?? 0).toFixed(2)}
                     </th>
                   ))}
-                  <th className="py-2 px-4 border-t border-gray-300 dark:border-gray-600 text-center">
+                  <th className="px-3 py-2.5 text-center tabular-nums text-fg">
                     {totalHours.toFixed(2)}
                   </th>
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
 
-          <div className="flex flex-col md:flex-row mt-8 gap-4">
-            <div className="w-full md:w-1/2">
+          <div className="mt-8 flex flex-col gap-4 md:flex-row">
+            <div className="ui-card w-full p-4 md:w-1/2">
               <MonthlyPieChart projectId={projectId} filteredData={userHours} userDetails={userDetails} />
             </div>
-            <div className="w-full md:w-1/2">
+            <div className="ui-card w-full p-4 md:w-1/2">
               <MonthlyPieChartParticipation projectId={projectId} filteredData={userHours} />
             </div>
           </div>
-          <div className="mt-8">
+          <div className="ui-card mt-8 p-4">
             <MonthlyBarChart projectId={projectId} filteredData={{ userHours, months }} />
           </div>
         </>
@@ -430,6 +426,7 @@ const Project: React.FC<ProjectProps> = ({ projectId }) => {
         overallStartDate={new Date('2023-01-01')}
         overallEndDate={new Date()}
       />
+      </div>
     </div>
   );
 };

@@ -175,12 +175,12 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
     return isNaN(date.getTime()) ? "Date not available" : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const getIconColorClass = (bgColorClass: string) => {
-    return bgColorClass === 'bg-blue-500' ? 'text-white' : 'text-blue-500';
-  };
+  const getIconColorClass = () => 'text-accent';
 
   if (!projectDetails) {
-    return <div>Loading...</div>;
+    return (
+      <div className="ui-card mt-4 px-4 py-8 text-center text-sm text-fg-muted">Loading project…</div>
+    );
   }
 
   const periodOfPerformanceDisplay = projectDetails.periodOfPerformance.startDate && projectDetails.periodOfPerformance.endDate
@@ -189,36 +189,50 @@ const ProjectInfo: React.FC<ProjectInfoProps> = ({ projectId, totalHours, setDes
 
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center">
-        <div className="bg-blue-500 rounded-md p-4 m-auto max-w-full text-center">
-          <div className="flex justify-center items-center text-black">
-            <div className="mx-2">
-              <span><b>Status:</b> {projectDetails.status || "N/A"} </span>
+      <div className="ui-card mt-4 px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-center text-sm text-fg">
+            <div>
+              <span className="text-fg-subtle">Status</span>
+              <div className="font-medium text-fg">{projectDetails.status || 'N/A'}</div>
             </div>
-            <div className="mx-2">
-              <span><b>Contract Type:</b> {projectDetails.contractType || "N/A"} </span>
+            <div>
+              <span className="text-fg-subtle">Contract</span>
+              <div className="font-medium text-fg">{projectDetails.contractType || 'N/A'}</div>
             </div>
-            <div className="mx-2">
-              <span><b>POP:</b> {periodOfPerformanceDisplay} </span>
+            <div className="max-w-md">
+              <span className="text-fg-subtle">POP</span>
+              <div className="font-medium text-fg">{periodOfPerformanceDisplay}</div>
             </div>
-            <div className="mx-2">
-              <span><b>Budget Hrs:</b> {budgetHours.toFixed(2) || "0"} </span>
+            <div>
+              <span className="text-fg-subtle">Budget hrs</span>
+              <div className="font-medium tabular-nums text-fg">{budgetHours.toFixed(2) || '0'}</div>
             </div>
-            <div className="mx-2">
-              <span ><b>Hrs. Remain:</b> {hrsRemain.toFixed(2) || "0"} ({(((hrsRemain) / (budgetHours)) * 100).toFixed(1) + `%`}) </span>
+            <div>
+              <span className="text-fg-subtle">Hrs remain</span>
+              <div className="font-medium tabular-nums text-fg">
+                {hrsRemain.toFixed(2) || '0'}{' '}
+                <span className="text-fg-muted">
+                  ({budgetHours ? (((hrsRemain / budgetHours) * 100).toFixed(1) + '%') : '—'})
+                </span>
+              </div>
             </div>
-            <div className="mx-2">
-              <Tippy content={`Calculated as the remaining hours divided by the number of months remaining in the project period. The current month is included if today is between the 1st and the 15th of the month; otherwise, it is excluded. If less than a month is remaining or the result is negative, this value shows 0. Remaining months: ${remainingMonthNames}`}>
-                <span className="flex items-center">
-                  <b>Hrs/Month:&nbsp; </b> {hoursRemainPerMonth.toFixed(2) || " 0"}
-                  <FaInfoCircle className={`ml-2 ${getIconColorClass('bg-blue-500')}`} />
+            <div>
+              <Tippy
+                content={`Remaining hours ÷ months left in POP (current month included if today is before the 15th). If under a month or negative, shows 0. Remaining months: ${remainingMonthNames}`}
+                theme="dark"
+                placement="top"
+              >
+                <span className="flex cursor-default items-center justify-center gap-1.5">
+                  <span className="text-fg-subtle">Hrs / month</span>
+                  <span className="font-medium tabular-nums text-fg">{hoursRemainPerMonth.toFixed(2) || '0'}</span>
+                  <FaInfoCircle className={`shrink-0 ${getIconColorClass()}`} aria-hidden />
                 </span>
               </Tippy>
             </div>
-            <div className="mx-2">
-              <span><b>PM:</b> {projectDetails.pm || "N/A"} </span>
+            <div>
+              <span className="text-fg-subtle">PM</span>
+              <div className="font-medium text-fg">{projectDetails.pm || 'N/A'}</div>
             </div>
-          </div>
         </div>
       </div>
     </div>

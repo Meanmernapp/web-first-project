@@ -11,7 +11,9 @@ export const SMTP_PASS = process.env.SMTP_PASS || '';
 export const SMTP_FROM = process.env.SMTP_FROM || '';
 export const FROM_NAME = process.env.FROM_NAME || '';
 
-
-if (typeof window === 'undefined' && (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM)) {
-  throw new Error('One or more SMTP environment variables are not defined');
+/** Call from email send paths only — not at module load (builds must work without SMTP). */
+export function assertSmtpConfigured(): void {
+  if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS || !SMTP_FROM) {
+    throw new Error('One or more SMTP environment variables are not defined');
+  }
 }
