@@ -1,5 +1,4 @@
 # WebFirst Timesheet & Project Alert System
-
 This project is an internal dashboard used to monitor project health in day-to-day operations.
 
 Its main goal is simple: **help teams avoid budget surprises and contract end-date misses** by turning timesheet data into clear views and timely alerts.
